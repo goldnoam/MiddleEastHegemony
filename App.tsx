@@ -105,6 +105,7 @@ const App: React.FC = () => {
   const [gameState, setGameState] = useState<GameState>(GameState.START);
   const [stats, setStats] = useState<GameStats>(INITIAL_STATS);
   const [currentScenario, setCurrentScenario] = useState<Scenario | null>(null);
+  const [shownScenarioTitles, setShownScenarioTitles] = useState<string[]>([]);
   const [lastResult, setLastResult] = useState<string>('');
   const [history, setHistory] = useState<HistoryEntry[]>([]);
   const [isHistoryOpen, setIsHistoryOpen] = useState<boolean>(false);
@@ -176,7 +177,7 @@ const App: React.FC = () => {
   };
 
   const saveGame = () => {
-    const gameData = { stats, gameState, currentScenario, lastResult, history, language };
+    const gameData = { stats, gameState, currentScenario, shownScenarioTitles, lastResult, history, language };
     localStorage.setItem(SAVE_KEY, JSON.stringify(gameData));
     setHasSavedGame(true);
     setSaveStatus(t.ui.saving);
@@ -191,6 +192,7 @@ const App: React.FC = () => {
         setStats(data.stats);
         setGameState(data.gameState);
         setCurrentScenario(data.currentScenario);
+        setShownScenarioTitles(data.shownScenarioTitles || []);
         setLastResult(data.lastResult);
         setHistory(data.history || []);
         if (data.language) setLanguage(data.language);
@@ -211,23 +213,34 @@ const App: React.FC = () => {
     setTimeout(() => {
       const available = t.scenarios || [];
       if (available.length > 0) {
-        let filtered = available.filter((s: Scenario) => s.title !== currentScenario?.title);
-        if (filtered.length === 0) filtered = available;
+        let unshown = available.filter((s: Scenario) => !shownScenarioTitles.includes(s.title));
         
-        const randomIndex = Math.floor(Math.random() * filtered.length);
-        setCurrentScenario(filtered[randomIndex]);
-        setGameState(GameState.PLAYING);
+        if (unshown.length === 0) {
+          unshown = available;
+          const randomIndex = Math.floor(Math.random() * unshown.length);
+          const picked = unshown[randomIndex];
+          setCurrentScenario(picked);
+          setShownScenarioTitles([picked.title]);
+          setGameState(GameState.PLAYING);
+        } else {
+          const randomIndex = Math.floor(Math.random() * unshown.length);
+          const picked = unshown[randomIndex];
+          setCurrentScenario(picked);
+          setShownScenarioTitles(prev => [...prev, picked.title]);
+          setGameState(GameState.PLAYING);
+        }
       } else {
         setError(t.ui.error);
       }
       setLoading(false);
     }, 1200);
-  }, [currentScenario, t.scenarios, t.ui.error, loadingMessages]);
+  }, [shownScenarioTitles, t.scenarios, t.ui.error, loadingMessages]);
 
   const startGame = () => {
     setStats(INITIAL_STATS);
     setLastResult('');
     setHistory([]);
+    setShownScenarioTitles([]);
     pickScenario();
   };
 
@@ -430,7 +443,7 @@ const App: React.FC = () => {
                       </div>
                       <h2 className="text-3xl md:text-4xl font-black mb-6 leading-tight">{currentScenario.title}</h2>
                       <p className="text-lg md:text-xl leading-relaxed mb-10 max-w-4xl opacity-80">{currentScenario.description}</p>
-                      <DecisionPanel choices={currentScenario.choices} onSelect={handleChoice} isLoading={loading} />
+                      <DecisionPanel choices={currentScenario.choices} onSelect={handleChoice} isLoading={loading} statsLabels={t.stats} />
                     </motion.div>
                   )}
 
