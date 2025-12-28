@@ -1,7 +1,6 @@
 
 import React, { useState, useEffect, useCallback } from 'react';
 import { GameStats, Scenario, Choice, GameState, HistoryEntry, Language, Theme } from './types';
-import { generateScenario } from './services/geminiService';
 import { translations } from './translations';
 import StatCard from './components/StatCard';
 import DecisionPanel from './components/DecisionPanel';
@@ -84,25 +83,31 @@ const App: React.FC = () => {
     }
   };
 
-  const fetchNextScenario = useCallback(async (currentStats: GameStats, lastChoiceLabel?: string) => {
+  const pickScenario = useCallback(() => {
     setLoading(true);
-    setError(null);
-    try {
-      const scenario = await generateScenario(currentStats, lastChoiceLabel, language);
-      setCurrentScenario(scenario);
-      setGameState(GameState.PLAYING);
-    } catch (err) {
-      setError(t.ui.error);
-    } finally {
+    // Introduce a small artificial delay to maintain the 'loading' feel
+    setTimeout(() => {
+      const available = t.scenarios || [];
+      if (available.length > 0) {
+        // Find a scenario that isn't the current one if possible
+        let filtered = available.filter((s: Scenario) => s.title !== currentScenario?.title);
+        if (filtered.length === 0) filtered = available;
+        
+        const randomIndex = Math.floor(Math.random() * filtered.length);
+        setCurrentScenario(filtered[randomIndex]);
+        setGameState(GameState.PLAYING);
+      } else {
+        setError(t.ui.error);
+      }
       setLoading(false);
-    }
-  }, [language, t.ui.error]);
+    }, 600);
+  }, [currentScenario, t.scenarios, t.ui.error]);
 
   const startGame = () => {
     setStats(INITIAL_STATS);
     setLastResult('');
     setHistory([]);
-    fetchNextScenario(INITIAL_STATS);
+    pickScenario();
   };
 
   const handleChoice = async (choice: Choice) => {
@@ -140,7 +145,7 @@ const App: React.FC = () => {
   };
 
   const nextTurn = () => {
-    fetchNextScenario(stats, lastResult);
+    pickScenario();
   };
 
   const handleShare = async () => {
