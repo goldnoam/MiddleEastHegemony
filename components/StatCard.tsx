@@ -11,8 +11,16 @@ interface StatCardProps {
 }
 
 const StatCard: React.FC<StatCardProps> = ({ label, value, icon, color, description }) => {
-  // Extract background color from text color class
-  const bgColorClass = color.replace('text', 'bg');
+  // Map text color classes to background color classes explicitly to ensure visibility
+  const getBgColor = (textColor: string) => {
+    if (textColor.includes('red')) return 'bg-red-500';
+    if (textColor.includes('blue')) return 'bg-blue-500';
+    if (textColor.includes('emerald')) return 'bg-emerald-500';
+    if (textColor.includes('amber')) return 'bg-amber-500';
+    return 'bg-slate-500';
+  };
+
+  const bgColorClass = getBgColor(color);
   const isLow = value < 25;
   
   // Mapping of stat failure consequences for more context
@@ -59,22 +67,26 @@ const StatCard: React.FC<StatCardProps> = ({ label, value, icon, color, descript
         </div>
       </div>
       
-      {/* Progress Bar Track - Lightened for visibility */}
-      <div className="relative h-3 w-full bg-slate-900/90 rounded-full overflow-hidden border border-slate-700/50 shadow-inner">
+      {/* Enhanced Progress Bar Track */}
+      <div className="relative h-4 w-full bg-slate-950 rounded-full overflow-hidden border border-slate-700/50 shadow-inner">
         <motion.div 
           initial={{ width: 0 }}
           animate={{ width: `${Math.min(Math.max(value, 0), 100)}%` }}
           transition={{ 
             duration: 0.8, 
-            ease: [0.175, 0.885, 0.32, 1.1] // Subtle bounce effect
+            ease: [0.34, 1.56, 0.64, 1] // Smooth subtle bounce ease
           }}
-          className={`absolute top-0 left-0 h-full ${isLow ? 'bg-red-500' : bgColorClass} relative shadow-[0_0_10px_rgba(0,0,0,0.3)]`}
+          className={`h-full ${isLow ? 'bg-red-600' : bgColorClass} relative shadow-[0_0_15px_rgba(0,0,0,0.5)]`}
         >
-          {/* Animated Glow Cap */}
-          <div className="absolute right-0 top-0 h-full w-[4px] bg-white/40 blur-[2px] z-10" />
+          {/* Subtle Glass Highlight */}
+          <div className="absolute inset-0 bg-gradient-to-b from-white/20 to-transparent pointer-events-none" />
           
-          {/* Shimmer Effect */}
-          <div className="absolute inset-0 w-full h-full bg-gradient-to-r from-transparent via-white/15 to-transparent -translate-x-full animate-[shimmer_3s_infinite]" />
+          {/* Active Glow Cap */}
+          <motion.div 
+            animate={{ opacity: [0.4, 0.8, 0.4] }}
+            transition={{ duration: 2, repeat: Infinity }}
+            className="absolute right-0 top-0 h-full w-[4px] bg-white/60 blur-[2px]" 
+          />
         </motion.div>
       </div>
       
@@ -92,11 +104,6 @@ const StatCard: React.FC<StatCardProps> = ({ label, value, icon, color, descript
       </div>
 
       <style>{`
-        @keyframes shimmer {
-          0% { transform: translateX(-100%); }
-          50% { transform: translateX(100%); }
-          100% { transform: translateX(100%); }
-        }
         @keyframes pulse-border {
           0%, 100% { border-color: rgba(239, 68, 68, 0.5); }
           50% { border-color: rgba(239, 68, 68, 0.1); }

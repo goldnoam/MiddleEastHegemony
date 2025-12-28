@@ -345,6 +345,13 @@ const App: React.FC = () => {
               <div className="flex flex-col sm:flex-row gap-4">
                 <button onClick={startGame} className="bg-amber-500 hover:bg-amber-600 text-slate-950 font-bold py-4 px-12 rounded-full text-xl transition-all shadow-xl shadow-amber-500/20">{t.newGame}</button>
                 {hasSavedGame && <button onClick={loadGame} className="bg-slate-800 hover:bg-slate-700 text-white font-bold py-4 px-12 rounded-full text-xl transition-all border border-slate-700">{t.loadGame}</button>}
+                <button 
+                  onClick={() => readText(`${t.startTitle}. ${t.startDesc}`)}
+                  className={`flex items-center justify-center gap-2 font-bold py-4 px-12 rounded-full text-xl transition-all border border-slate-700/50 backdrop-blur-md ${isReading ? 'bg-amber-500 text-slate-950' : 'bg-slate-800/40 text-slate-300 hover:bg-slate-700/60'}`}
+                >
+                  {isReading ? <VolumeX size={24} /> : <Volume2 size={24} />}
+                  {t.ui.readStart}
+                </button>
               </div>
             </motion.div>
           ) : (

@@ -29,7 +29,15 @@ export const translations: Record<Language, any> = {
       nextTurn: "המשך לתור הבא",
       saving: "נשמר!",
       loading: "טוען...",
-      error: "אירעה שגיאה."
+      exporting: "מייצא...",
+      error: "אירעה שגיאה.",
+      search: "חפש אירוע...",
+      filterTurn: "סינון לפי תור",
+      filterOutcome: "סינון לפי תוצאה",
+      outcomeAll: "הכל",
+      outcomePeace: "שלום ודיפלומטיה",
+      outcomeWar: "מלחמה ועימות",
+      readStart: "הקרא תיאור משחק"
     },
     scenarios: [
       {
@@ -60,7 +68,7 @@ export const translations: Record<Language, any> = {
         ]
       },
       {
-        title: "גל הגירה אזורי",
+        title: "גול הגירה אזורי",
         description: "מלחמת אזרחים במדינה סמוכה שולחת מאות אלפי פליטים לכיוון הגבולות שלך.",
         choices: [
           { id: "4a", label: "גבולות פתוחים", description: "קבל את הפליטים והענק להם סיוע הומניטרי מלא.", impact: { military: -10, diplomacy: 25, territory: 0, economy: -15, narrativeResult: "העולם מריע לך דיפלומטית, אך הנטל הכלכלי והחברתי כבד מנשוא." } },
@@ -101,7 +109,7 @@ export const translations: Record<Language, any> = {
         choices: [
           { id: "8a", label: "יבוא מזון מסיבי", description: "השתמש ברזרבות המדינה כדי לקנות חיטה בשוק העולמי.", impact: { military: -5, diplomacy: 5, territory: 0, economy: -25, narrativeResult: "הרעב נעצר, אך קופת המדינה התרוקנה לחלוטין." } },
           { id: "8b", label: "דיכוי המהומות", description: "השתמש בכוחות הביטחון כדי להשליט סדר בערים.", impact: { military: 10, diplomacy: -20, territory: 0, economy: -5, narrativeResult: "הסדר נשמר בכוח, אך הלגיטימציה של המשטר נפגעה קשות." } },
-          { id: "8c", label: "רפורמה חקלאית", description: "השקע במתקני התפלה וחקלאות מדברית מתקדמת.", impact: { military: 0, diplomacy: 0, territory: 5, economy: 15, narrativeResult: "הפתרון לקח זמן אך הפכתם לעצמאיים תזונתית ואף מייצאים ידע." } }
+          { id: "8c", label: "רפורמה חקלאית", description: "השקע בממתקני התפלה וחקלאות מדברית מתקדמת.", impact: { military: 0, diplomacy: 0, territory: 5, economy: 15, narrativeResult: "הפתרון לקח זמן אך הפכתם לעצמאיים תזונתית ואף מייצאים ידע." } }
         ]
       },
       {
@@ -151,7 +159,15 @@ export const translations: Record<Language, any> = {
       nextTurn: "Next Turn",
       saving: "Saved!",
       loading: "Loading...",
-      error: "Error loading."
+      exporting: "Exporting...",
+      error: "Error loading.",
+      search: "Search event...",
+      filterTurn: "Filter by Turn",
+      filterOutcome: "Filter by Outcome",
+      outcomeAll: "All",
+      outcomePeace: "Peace & Diplomacy",
+      outcomeWar: "War & Conflict",
+      readStart: "Read Game Description"
     },
     scenarios: [
       {
@@ -273,9 +289,17 @@ export const translations: Record<Language, any> = {
       nextTurn: "Далее",
       saving: "Сохранено!",
       loading: "Загрузка...",
-      error: "Ошибка."
+      exporting: "Экспорт...",
+      error: "Ошибка.",
+      search: "Поиск события...",
+      filterTurn: "По ходу",
+      filterOutcome: "По итогу",
+      outcomeAll: "Все",
+      outcomePeace: "Мир",
+      outcomeWar: "Конфликт",
+      readStart: "Прочитать описание"
     },
-    scenarios: [] // Add same 10 scenarios with Russian text if needed
+    scenarios: []
   },
   zh: {
     title: "中东霸权",
@@ -304,7 +328,15 @@ export const translations: Record<Language, any> = {
       nextTurn: "下一回合",
       saving: "已保存！",
       loading: "加载中...",
-      error: "错误。"
+      exporting: "导出中...",
+      error: "错误。",
+      search: "搜索事件...",
+      filterTurn: "按回合筛选",
+      filterOutcome: "按结果筛选",
+      outcomeAll: "全部",
+      outcomePeace: "和平外交",
+      outcomeWar: "战争冲突",
+      readStart: "阅读游戏描述"
     },
     scenarios: []
   },
@@ -335,7 +367,15 @@ export const translations: Record<Language, any> = {
       nextTurn: "अगली बारी",
       saving: "सहेजा गया!",
       loading: "लोड हो रहा है...",
-      error: "त्रुटि।"
+      exporting: "निर्यात हो रहा है...",
+      error: "त्रुटि।",
+      search: "खोजें...",
+      filterTurn: "बारी से फिल्टर",
+      filterOutcome: "परिणाम से फिल्टर",
+      outcomeAll: "सभी",
+      outcomePeace: "शांति",
+      outcomeWar: "युद्ध",
+      readStart: "विवरण पढ़ें"
     },
     scenarios: []
   },
@@ -366,7 +406,15 @@ export const translations: Record<Language, any> = {
       nextTurn: "Nächste Runde",
       saving: "Gespeichert!",
       loading: "Laden...",
-      error: "Fehler."
+      exporting: "Exportieren...",
+      error: "Fehler.",
+      search: "Suche...",
+      filterTurn: "Nach Runde filtern",
+      filterOutcome: "Nach Ergebnis filtern",
+      outcomeAll: "Alle",
+      outcomePeace: "Frieden",
+      outcomeWar: "Krieg",
+      readStart: "Beschreibung vorlesen"
     },
     scenarios: []
   },
@@ -397,13 +445,20 @@ export const translations: Record<Language, any> = {
       nextTurn: "Siguiente",
       saving: "¡Guardado!",
       loading: "Cargando...",
-      error: "Error."
+      exporting: "Exportando...",
+      error: "Error.",
+      search: "Buscar...",
+      filterTurn: "Filtrar por turno",
+      filterOutcome: "Filtrar por resultado",
+      outcomeAll: "Todos",
+      outcomePeace: "Paz",
+      outcomeWar: "Conflicto",
+      readStart: "Leer descripción"
     },
     scenarios: []
   }
 };
 
-// Filling in missing scenarios for other languages using English as fallback for now
 Object.keys(translations).forEach(lang => {
   if (lang !== 'en' && lang !== 'he' && (!translations[lang].scenarios || translations[lang].scenarios.length === 0)) {
     translations[lang].scenarios = JSON.parse(JSON.stringify(translations['en'].scenarios));
