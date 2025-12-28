@@ -1,4 +1,7 @@
 
+export type Language = 'he' | 'en' | 'ru' | 'zh' | 'hi' | 'de' | 'es';
+export type Theme = 'dark' | 'light';
+
 export interface GameStats {
   military: number;
   diplomacy: number;

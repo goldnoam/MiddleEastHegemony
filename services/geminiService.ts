@@ -1,25 +1,37 @@
 
 import { GoogleGenAI, Type } from "@google/genai";
-import { Scenario, GameStats } from "../types";
+import { Scenario, GameStats, Language } from "../types";
 
 const ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
 
-export const generateScenario = async (stats: GameStats, lastAction?: string): Promise<Scenario> => {
+export const generateScenario = async (stats: GameStats, lastAction: string | undefined, language: Language = 'he'): Promise<Scenario> => {
+  const langMap: Record<Language, string> = {
+    he: "Hebrew",
+    en: "English",
+    ru: "Russian",
+    zh: "Chinese",
+    hi: "Hindi",
+    de: "German",
+    es: "Spanish"
+  };
+
   const prompt = `
-    אתה מנוע של משחק אסטרטגיה גיאופוליטי המתרחש במזרח התיכון המודרני.
-    המצב הנוכחי של השחקן:
-    צבאי: ${stats.military}/100
-    דיפלומטיה: ${stats.diplomacy}/100
-    טריטוריה: ${stats.territory}/100
-    כלכלה: ${stats.economy}/100
-    תור מספר: ${stats.turn}
-    הפעולה האחרונה שנבחרה: ${lastAction || "תחילת המשחק"}
+    You are a geopolitical strategy game engine set in the modern Middle East.
+    Current Player State:
+    Military: ${stats.military}/100
+    Diplomacy: ${stats.diplomacy}/100
+    Territory: ${stats.territory}/100
+    Economy: ${stats.economy}/100
+    Turn Number: ${stats.turn}
+    Last Action: ${lastAction || "Game Start"}
 
-    צור תרחיש חדש שבו השחקן חייב לקבל החלטה. התרחיש יכול להיות משבר גבול, הזדמנות לשלום, תגלית נפט, או התעצמות צבאית של מדינה שכנה.
-    הצע 3 אפשרויות בחירה (או 2 במקרים קיצוניים).
-    לכל בחירה, הגדר השפעה מספרית (חיובית או שלילית) על המשאבים וטקסט קצר המתאר את התוצאה.
+    IMPORTANT: Generate all text content in the following language: ${langMap[language]}.
+    
+    Create a new scenario where the player must make a decision. It can be a border crisis, a peace opportunity, an oil discovery, or military buildup by a neighbor.
+    Provide 3 choices.
+    For each choice, define numerical impacts and a narrative result text.
 
-    החזר את התשובה בפורמט JSON בלבד התואם את הסכימה הבאה.
+    Return the answer in JSON format only.
   `;
 
   const response = await ai.models.generateContent({
