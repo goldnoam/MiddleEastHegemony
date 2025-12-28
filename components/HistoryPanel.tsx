@@ -95,7 +95,10 @@ const HistoryPanel: React.FC<HistoryPanelProps> = ({ history, isOpen, onClose, o
                     <div className="flex items-center justify-between mb-1">
                       <div className="flex items-center gap-2">
                         <button 
-                          onClick={() => onRead(`${entry.scenarioTitle}. ${entry.scenarioDescription}. Result: ${entry.resultText}`)}
+                          onClick={() => {
+                            const speechText = `${entry.scenarioTitle}. ${isRtl ? 'הבעיה' : 'Issue'}: ${entry.scenarioDescription}. ${isRtl ? 'הפתרון שנבחר' : 'Selected Solution'}: ${entry.choiceLabel}. ${isRtl ? 'תוצאה' : 'Result'}: ${entry.resultText}`;
+                            onRead(speechText);
+                          }}
                           className={`p-2 rounded-lg transition-all ${isReading ? 'bg-amber-500 text-slate-950' : 'bg-slate-800 text-slate-400 hover:text-amber-500'}`}
                           title={isRtl ? "הקרא אירוע ותוצאה" : "Read Event & Result"}
                         >

@@ -1,5 +1,6 @@
 
 import React from 'react';
+import { motion } from 'framer-motion';
 
 interface StatCardProps {
   label: string;
@@ -17,20 +18,24 @@ const StatCard: React.FC<StatCardProps> = ({ label, value, icon, color, descript
   // Mapping of stat failure consequences for more context
   const getConsequence = (label: string) => {
     switch (label) {
-      case "עוצמה צבאית": return "קריסת קווי ההגנה תוביל לכיבוש המדינה או להפיכה צבאית אלימה.";
-      case "דיפלומטיה": return "בידוד בינלאומי מוחלט יגרור סנקציות משתקות ואובדן לגיטימציה.";
-      case "טריטוריה": return "אובדן הריבונות יוביל להתפרקות לאומית ואובדן השליטה על משאבי טבע.";
-      case "כלכלה": return "אינפלציה דוהרת ורעב המוני יגרמו להתקוממות אזרחית ונפילת המשטר.";
+      case "עוצמה צבאית":
+      case "Military": return "קריסת קווי ההגנה תוביל לכיבוש המדינה או להפיכה צבאית אלימה.";
+      case "דיפלומטיה":
+      case "Diplomacy": return "בידוד בינלאומי מוחלט יגרור סנקציות משתקות ואובדן לגיטימציה.";
+      case "טריטוריה":
+      case "Territory": return "אובדן הריבונות יוביל להתפרקות לאומית ואובדן השליטה על משאבי טבע.";
+      case "כלכלה":
+      case "Economy": return "אינפלציה דוהרת ורעב המוני יגרמו להתקוממות אזרחית ונפילת המשטר.";
       default: return "אובדן משאב זה יערער את יציבות המדינה.";
     }
   };
 
   return (
-    <div className={`group relative bg-slate-800/40 backdrop-blur-sm p-4 rounded-xl border ${isLow ? 'border-red-500/50 shadow-[0_0_15px_rgba(239,68,68,0.2)] animate-pulse-border' : 'border-slate-700/50'} shadow-lg transition-all hover:border-slate-500 cursor-help overflow-visible`}>
+    <div className={`group relative bg-slate-800/60 backdrop-blur-md p-5 rounded-2xl border ${isLow ? 'border-red-500/50 shadow-[0_0_20px_rgba(239,68,68,0.15)] animate-pulse-border' : 'border-slate-700/50'} shadow-xl transition-all hover:border-slate-500 cursor-help overflow-visible`}>
       {/* Tooltip */}
-      <div className="absolute bottom-full left-1/2 -translate-x-1/2 mb-4 w-60 p-4 bg-slate-900 text-slate-200 text-xs rounded-lg border border-slate-700 opacity-0 group-hover:opacity-100 transition-all duration-300 pointer-events-none z-[70] shadow-2xl scale-95 group-hover:scale-100 origin-bottom">
+      <div className="absolute bottom-full left-1/2 -translate-x-1/2 mb-4 w-64 p-4 bg-slate-900 text-slate-200 text-xs rounded-xl border border-slate-700 opacity-0 group-hover:opacity-100 transition-all duration-300 pointer-events-none z-[70] shadow-2xl scale-95 group-hover:scale-100 origin-bottom">
         <div className="space-y-3">
-          <p className="leading-relaxed text-right font-medium opacity-80">{description}</p>
+          <p className="leading-relaxed text-right font-medium opacity-80">{description || label}</p>
           
           <div className="pt-2 border-t border-slate-800">
             <p className="text-red-400 font-bold text-[10px] uppercase mb-1 flex items-center justify-end gap-1">
@@ -43,8 +48,8 @@ const StatCard: React.FC<StatCardProps> = ({ label, value, icon, color, descript
         <div className="absolute top-full left-1/2 -translate-x-1/2 border-8 border-transparent border-t-slate-900"></div>
       </div>
 
-      <div className="flex items-center justify-between mb-3">
-        <span className="text-slate-400 text-sm font-bold tracking-tight">{label}</span>
+      <div className="flex items-center justify-between mb-4">
+        <span className="text-slate-400 text-xs font-black uppercase tracking-widest">{label}</span>
         <div className={`${isLow ? 'text-red-500 animate-bounce' : color} transition-transform group-hover:rotate-12 duration-300`}>
           {isLow ? (
             <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -54,20 +59,35 @@ const StatCard: React.FC<StatCardProps> = ({ label, value, icon, color, descript
         </div>
       </div>
       
-      {/* Progress Bar Track */}
-      <div className="relative h-2.5 w-full bg-slate-950/80 rounded-full overflow-hidden border border-slate-800 shadow-inner">
-        <div 
-          className={`absolute top-0 left-0 h-full transition-[width,background-color] duration-1000 ease-in-out ${isLow ? 'bg-red-600' : bgColorClass} relative`}
-          style={{ width: `${Math.min(Math.max(value, 0), 100)}%` }}
+      {/* Progress Bar Track - Lightened for visibility */}
+      <div className="relative h-3 w-full bg-slate-900/90 rounded-full overflow-hidden border border-slate-700/50 shadow-inner">
+        <motion.div 
+          initial={{ width: 0 }}
+          animate={{ width: `${Math.min(Math.max(value, 0), 100)}%` }}
+          transition={{ 
+            duration: 0.8, 
+            ease: [0.175, 0.885, 0.32, 1.1] // Subtle bounce effect
+          }}
+          className={`absolute top-0 left-0 h-full ${isLow ? 'bg-red-500' : bgColorClass} relative shadow-[0_0_10px_rgba(0,0,0,0.3)]`}
         >
-          <div className="absolute inset-0 w-full h-full bg-gradient-to-r from-transparent via-white/10 to-transparent -translate-x-full animate-[shimmer_3s_infinite]" />
-          <div className="absolute right-0 top-0 h-full w-[2px] bg-white/40 blur-[1px]" />
-        </div>
+          {/* Animated Glow Cap */}
+          <div className="absolute right-0 top-0 h-full w-[4px] bg-white/40 blur-[2px] z-10" />
+          
+          {/* Shimmer Effect */}
+          <div className="absolute inset-0 w-full h-full bg-gradient-to-r from-transparent via-white/15 to-transparent -translate-x-full animate-[shimmer_3s_infinite]" />
+        </motion.div>
       </div>
       
-      <div className="mt-2 text-right flex items-center justify-end gap-2">
-        {isLow && <span className="text-[10px] font-black text-red-500 uppercase animate-pulse">קריטי!</span>}
-        <span className={`text-2xl font-black tabular-nums tracking-tighter transition-colors duration-500 ${isLow ? 'text-red-500' : 'text-white'}`}>{value}</span>
+      <div className="mt-3 text-right flex items-center justify-end gap-2">
+        {isLow && <span className="text-[10px] font-black text-red-500 uppercase animate-pulse">Critical</span>}
+        <motion.span 
+          key={value}
+          initial={{ scale: 0.8, opacity: 0 }}
+          animate={{ scale: 1, opacity: 1 }}
+          className={`text-2xl font-black tabular-nums tracking-tighter transition-colors duration-500 ${isLow ? 'text-red-500' : 'text-white'}`}
+        >
+          {value}
+        </motion.span>
         <span className="text-slate-600 text-xs font-bold ml-1 italic">/ 100</span>
       </div>
 

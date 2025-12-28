@@ -410,7 +410,10 @@ const App: React.FC = () => {
                       <div className="flex justify-between items-start mb-4">
                         <span className="px-3 py-1 bg-amber-500/10 text-amber-500 rounded-full text-[10px] font-black uppercase tracking-[0.2em] inline-block">{t.ui.intelReport}</span>
                         <button 
-                          onClick={() => readText(`${currentScenario.title}. ${currentScenario.description}`)}
+                          onClick={() => {
+                            const choicesText = currentScenario.choices.map((c, i) => `${isRtl ? 'אופציה' : 'Option'} ${i+1}: ${c.label}`).join('. ');
+                            readText(`${currentScenario.title}. ${currentScenario.description}. ${choicesText}`);
+                          }}
                           className={`p-2.5 rounded-xl transition-all flex items-center gap-2 ${isReading ? 'bg-amber-500 text-slate-900 shadow-lg shadow-amber-500/20' : 'bg-slate-800/40 text-slate-400 hover:text-amber-500 backdrop-blur-sm border border-slate-700/50'}`}
                           title={t.readText}
                         >
