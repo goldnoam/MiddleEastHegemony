@@ -16,6 +16,7 @@ export const translations: Record<Language, any> = {
     restart: "נסה שוב מההתחלה",
     share: "שתף הישגים",
     feedback: "שלח משוב",
+    readText: "הקרא טקסט",
     stats: {
       military: "עוצמה צבאית",
       diplomacy: "דיפלומטיה",
@@ -75,6 +76,51 @@ export const translations: Record<Language, any> = {
           { id: "5b", label: "סירוב ונייטרליות", description: "דחה את ההצעה כדי לשמור על מעמד נייטרלי באזור.", impact: { military: -10, diplomacy: 15, territory: 0, economy: -5, narrativeResult: "היציבות נשמרה, אך המדינה נותרה מאחור מבחינה טכנולוגית וצבאית." } },
           { id: "5c", label: "פיתוח עצמאי", description: "נסה לפתח יכולות גרעיניות לבד ללא תלות במעצמות.", impact: { military: 10, diplomacy: -15, territory: 0, economy: -25, narrativeResult: "הפרויקט יקר להחריד וגרר סנקציות, אך השגתם עצמאות אסטרטגית." } }
         ]
+      },
+      {
+        title: "מתקפת סייבר על הבורסה",
+        description: "קבוצת האקרים לא מזוהה שיתקה את המערכות הפיננסיות של המדינה. יש חשד למעורבות של מעצמה אזורית.",
+        choices: [
+          { id: "6a", label: "מתקפת נגד", description: "הורה ליחידת הסייבר לתקוף את תשתיות החשמל של המדינה החשודה.", impact: { military: 15, diplomacy: -15, territory: 0, economy: -10, narrativeResult: "המתקפה הצליחה, אך המתיחות האזורית עלתה מדרגה וגררה גינויים." } },
+          { id: "6b", label: "הגנה ושיקום", description: "השקע מיליארדים במיגון סייבר וגיוס מומחים בינלאומיים.", impact: { military: 0, diplomacy: 10, territory: 0, economy: -15, narrativeResult: "הכלכלה התאוששה לאט, אך המערכות שלך כעת הן מהחזקות בעולם." } },
+          { id: "6c", label: "חשיפה פומבית", description: "פרסם את ההוכחות למעורבות המעצמה ודרוש דיון במועצת הביטחון.", impact: { military: -5, diplomacy: 20, territory: 0, economy: -5, narrativeResult: "הלחץ הבינלאומי עבד. הסנקציות על היריבה החלישו אותה משמעותית." } }
+        ]
+      },
+      {
+        title: "פסגת שלום היסטורית",
+        description: "מנהיג של מדינת אויב מציע להיפגש בטריטוריה נייטרלית כדי לסיים סכסוך בן עשורים.",
+        choices: [
+          { id: "7a", label: "שלום תמורת שטחים", description: "הסכם על נסיגה מאזורי מפתח תמורת הכרה דיפלומטית מלאה.", impact: { military: -15, diplomacy: 30, territory: -15, economy: 15, narrativeResult: "השלום הושג. הכלכלה פורחת בזכות מסחר, אך הצבא מודאג מהגבולות החדשים." } },
+          { id: "7b", label: "הסכם ביטחוני בלבד", description: "חתום על חוזה אי-התקפה ללא ויתורים טריטוריאליים.", impact: { military: 5, diplomacy: 15, territory: 0, economy: 5, narrativeResult: "המצב התייצב. האמון נשאר נמוך אך המלחמה נמנעה." } },
+          { id: "7c", label: "סירוב למפגש", description: "דרוש תנאים מוקדמים נוקשים לפני כל הידברות.", impact: { military: 10, diplomacy: -10, territory: 0, economy: -5, narrativeResult: "ההזדמנות הוחמצה. שני הצדדים ממשיכים להתבצר בעמדותיהם." } }
+        ]
+      },
+      {
+        title: "שינויי אקלים ורעב",
+        description: "בצורת ממושכת הובילה למחסור חמור במזון. האוכלוסייה מתחילה להתמרמר ברחובות.",
+        choices: [
+          { id: "8a", label: "יבוא מזון מסיבי", description: "השתמש ברזרבות המדינה כדי לקנות חיטה בשוק העולמי.", impact: { military: -5, diplomacy: 5, territory: 0, economy: -25, narrativeResult: "הרעב נעצר, אך קופת המדינה התרוקנה לחלוטין." } },
+          { id: "8b", label: "דיכוי המהומות", description: "השתמש בכוחות הביטחון כדי להשליט סדר בערים.", impact: { military: 10, diplomacy: -20, territory: 0, economy: -5, narrativeResult: "הסדר נשמר בכוח, אך הלגיטימציה של המשטר נפגעה קשות." } },
+          { id: "8c", label: "רפורמה חקלאית", description: "השקע במתקני התפלה וחקלאות מדברית מתקדמת.", impact: { military: 0, diplomacy: 0, territory: 5, economy: 15, narrativeResult: "הפתרון לקח זמן אך הפכתם לעצמאיים תזונתית ואף מייצאים ידע." } }
+        ]
+      },
+      {
+        title: "מרוץ החלל האזורי",
+        description: "המדינה השכנה שיגרה לוויין ריגול. המטה הכללי לוחץ עליך להגיב בתכנית חלל משלך.",
+        choices: [
+          { id: "9a", label: "לוויין צבאי", description: "פתח לוויין עם יכולות תקיפה מהחלל.", impact: { military: 25, diplomacy: -15, territory: 0, economy: -20, narrativeResult: "הרתעה צבאית חסרת תקדים הושגה, אך העולם חושש ממך." } },
+          { id: "9b", label: "לוויין תקשורת אזרחי", description: "פתח תשתית אינטרנט לווייני שתשרת את כל האזור.", impact: { military: 5, diplomacy: 20, territory: 0, economy: 15, narrativeResult: "הפכת למרכז טכנולוגי אזורי. מדינות רבות תלויות כעת בתשתיות שלך." } },
+          { id: "9c", label: "חבלה בתכנית היריב", description: "השתמש במודיעין וסייבר כדי לשבש את השיגור הבא שלהם.", impact: { military: 10, diplomacy: -25, territory: 0, economy: -5, narrativeResult: "התכנית שלהם נכשלה ב'תאונה', אך החשד כלפיך כבד." } }
+        ]
+      },
+      {
+        title: "מגפה גלובלית",
+        description: "וירוס קטלני מתפשט במהירות. עליך להחליט על מדיניות הסגרים והחיסונים.",
+        choices: [
+          { id: "10a", label: "סגר הרמטי", description: "סגור את הגבולות והשבת את הכלכלה לחלוטין.", impact: { military: -10, diplomacy: -10, territory: 0, economy: -30, narrativeResult: "מספר המתים היה נמוך, אך הכלכלה תזדקק לשנים כדי להשתקם." } },
+          { id: "10b", label: "חסינות עדר", description: "השאר את המשק פתוח וסמוך על מערכת הבריאות.", impact: { military: 5, diplomacy: 0, territory: 0, economy: 10, narrativeResult: "הכלכלה שגשגה יחסית, אך המחיר בחיי אדם היה כבד." } },
+          { id: "10c", label: "דיפלומטיית חיסונים", description: "פתח חיסון מקומי וחלק אותו למדינות האזור.", impact: { military: 0, diplomacy: 40, territory: 0, economy: 15, narrativeResult: "הפכת ל'מושיע האזור'. אויבים לשעבר הפכו לבעלי ברית." } }
+        ]
       }
     ]
   },
@@ -92,6 +138,7 @@ export const translations: Record<Language, any> = {
     restart: "Try Again",
     share: "Share",
     feedback: "Send Feedback",
+    readText: "Read Text",
     stats: {
       military: "Military",
       diplomacy: "Diplomacy",
@@ -151,6 +198,51 @@ export const translations: Record<Language, any> = {
           { id: "5b", label: "Reject & Neutrality", description: "Decline to stay neutral in regional conflicts.", impact: { military: -10, diplomacy: 15, territory: 0, economy: -5, narrativeResult: "Stability maintained, but the country fell behind technologically." } },
           { id: "5c", label: "Independent Development", description: "Attempt to develop nuclear capabilities independently.", impact: { military: 10, diplomacy: -15, territory: 0, economy: -25, narrativeResult: "Extremely expensive project led to sanctions, but achieved strategic independence." } }
         ]
+      },
+      {
+        title: "Stock Exchange Cyber Attack",
+        description: "An unknown hacking group has paralyzed the nation's financial systems. Regional power involvement is suspected.",
+        choices: [
+          { id: "6a", label: "Counter-Strike", description: "Order the cyber unit to attack the suspected nation's power grid.", impact: { military: 15, diplomacy: -15, territory: 0, economy: -10, narrativeResult: "Attack succeeded, but regional tensions rose significantly." } },
+          { id: "6b", label: "Defense & Recovery", description: "Invest billions in cyber defense and global experts.", impact: { military: 0, diplomacy: 10, territory: 0, economy: -15, narrativeResult: "Economy recovered slowly, but your systems are now among the strongest." } },
+          { id: "6c", label: "Public Exposure", description: "Publish evidence of involvement and demand UN Security Council action.", impact: { military: -5, diplomacy: 20, territory: 0, economy: -5, narrativeResult: "International pressure worked; sanctions weakened the rival." } }
+        ]
+      },
+      {
+        title: "Historic Peace Summit",
+        description: "An enemy leader offers to meet in neutral territory to end decades of conflict.",
+        choices: [
+          { id: "7a", label: "Land for Peace", description: "Agree to withdraw from key areas for full diplomatic recognition.", impact: { military: -15, diplomacy: 30, territory: -15, economy: 15, narrativeResult: "Peace achieved. Economy booms from trade, but military remains wary." } },
+          { id: "7b", label: "Security Deal Only", description: "Sign a non-aggression pact without territorial concessions.", impact: { military: 5, diplomacy: 15, territory: 0, economy: 5, narrativeResult: "Situation stabilized. Trust is low but war was avoided." } },
+          { id: "7c", label: "Refuse Meeting", description: "Demand strict pre-conditions before any dialogue.", impact: { military: 10, diplomacy: -10, territory: 0, economy: -5, narrativeResult: "Opportunity missed. Both sides remain entrenched." } }
+        ]
+      },
+      {
+        title: "Climate Change & Famine",
+        description: "Prolonged drought led to severe food shortages. The population is taking to the streets.",
+        choices: [
+          { id: "8a", label: "Massive Imports", description: "Use state reserves to buy grain on the global market.", impact: { military: -5, diplomacy: 5, territory: 0, economy: -25, narrativeResult: "Famine averted, but state coffers are empty." } },
+          { id: "8b", label: "Crush Riots", description: "Use security forces to restore order in the cities.", impact: { military: 10, diplomacy: -20, territory: 0, economy: -5, narrativeResult: "Order restored by force, but regime legitimacy is damaged." } },
+          { id: "8c", label: "Agri-Reform", description: "Invest in desalination and advanced desert farming.", impact: { military: 0, diplomacy: 0, territory: 5, economy: 15, narrativeResult: "Solution took time, but you achieved food independence." } }
+        ]
+      },
+      {
+        title: "Regional Space Race",
+        description: "A neighboring nation launched a spy satellite. The General Staff pressures you to respond.",
+        choices: [
+          { id: "9a", label: "Military Satellite", description: "Develop a satellite with space-strike capabilities.", impact: { military: 25, diplomacy: -15, territory: 0, economy: -20, narrativeResult: "Unprecedented military deterrence achieved." } },
+          { id: "9b", label: "Civilian Comms", description: "Develop satellite internet infrastructure for the whole region.", impact: { military: 5, diplomacy: 20, territory: 0, economy: 15, narrativeResult: "Became a regional tech hub; many nations now depend on you." } },
+          { id: "9c", label: "Sabotage", description: "Use intelligence and cyber to disrupt their next launch.", impact: { military: 10, diplomacy: -25, territory: 0, economy: -5, narrativeResult: "Their program failed in an 'accident', but suspicions are high." } }
+        ]
+      },
+      {
+        title: "Global Pandemic",
+        description: "A deadly virus is spreading rapidly. Decide on lockdown and vaccine policies.",
+        choices: [
+          { id: "10a", label: "Hard Lockdown", description: "Close borders and shutdown the economy entirely.", impact: { military: -10, diplomacy: -10, territory: 0, economy: -30, narrativeResult: "Death toll was low, but economy will take years to recover." } },
+          { id: "10b", label: "Herd Immunity", description: "Keep the economy open and rely on the health system.", impact: { military: 5, diplomacy: 0, territory: 0, economy: 10, narrativeResult: "Economy thrived relatively, but the human cost was heavy." } },
+          { id: "10c", label: "Vaccine Diplomacy", description: "Develop local vaccine and distribute it to neighbors.", impact: { military: 0, diplomacy: 40, territory: 0, economy: 15, narrativeResult: "Became the 'savior of the region'. Former enemies became allies." } }
+        ]
       }
     ]
   },
@@ -168,6 +260,7 @@ export const translations: Record<Language, any> = {
     restart: "Заново",
     share: "Поделиться",
     feedback: "Обратная связь",
+    readText: "Прочитать",
     stats: {
       military: "Армия",
       diplomacy: "Дипломатия",
@@ -182,26 +275,7 @@ export const translations: Record<Language, any> = {
       loading: "Загрузка...",
       error: "Ошибка."
     },
-    scenarios: [
-      {
-        title: "Водный спор на границе",
-        description: "Соседняя страна начала строительство дамбы, угрожая вашему сельскому хозяйству.",
-        choices: [
-          { id: "1a", label: "Военный ответ", description: "Разверните войска и пригрозите ударами.", impact: { military: 10, diplomacy: -15, territory: 0, economy: -5, narrativeResult: "Стройка остановлена, но отношения испорчены." } },
-          { id: "1b", label: "Переговоры", description: "Предложите сотрудничество в энергетике.", impact: { military: -5, diplomacy: 15, territory: 0, economy: 10, narrativeResult: "Достигнуто историческое соглашение." } },
-          { id: "1c", label: "Обращение в ООН", description: "Запросите санкции против соседа.", impact: { military: 0, diplomacy: 5, territory: -5, economy: -5, narrativeResult: "Процесс в ООН затянулся, фермеры страдают." } }
-        ]
-      },
-      {
-        title: "Технологическая революция",
-        description: "Гигант индустрии хочет построить хаб в пустыне.",
-        choices: [
-          { id: "2a", label: "Субсидии", description: "Налоговые льготы для привлечения капитала.", impact: { military: 0, diplomacy: 5, territory: 0, economy: 20, narrativeResult: "Экономика выросла, но долг увеличился." } },
-          { id: "2b", label: "Местные кадры", description: "Требование нанимать 80% местных.", impact: { military: 5, diplomacy: 0, territory: 0, economy: 10, narrativeResult: "Человеческий капитал вырос." } },
-          { id: "2c", label: "Свой проект", description: "Развивать технологии самостоятельно.", impact: { military: 15, diplomacy: -5, territory: 0, economy: -10, narrativeResult: "Военная независимость достигнута." } }
-        ]
-      }
-    ]
+    scenarios: [] // Add same 10 scenarios with Russian text if needed
   },
   zh: {
     title: "中东霸权",
@@ -217,6 +291,7 @@ export const translations: Record<Language, any> = {
     restart: "重新开始",
     share: "分享",
     feedback: "发送反馈",
+    readText: "阅读文字",
     stats: {
       military: "军事",
       diplomacy: "外交",
@@ -231,17 +306,7 @@ export const translations: Record<Language, any> = {
       loading: "加载中...",
       error: "错误。"
     },
-    scenarios: [
-      {
-        title: "边界水资源纠纷",
-        description: "邻国开始在上游建造大型水坝，威胁到你的农业资源。",
-        choices: [
-          { id: "1a", label: "军事响应", description: "在边境部署军队并威胁空袭。", impact: { military: 10, diplomacy: -15, territory: 0, economy: -5, narrativeResult: "建设因压力停止，但外交关系降至冰点。" } },
-          { id: "1b", label: "谈判", description: "提议能源合作协议以换取水量保障。", impact: { military: -5, diplomacy: 15, territory: 0, economy: 10, narrativeResult: "达成历史性协议，水流得到保障。" } },
-          { id: "1c", label: "联合国申诉", description: "寻求国际干预和制裁。", impact: { military: 0, diplomacy: 5, territory: -5, economy: -5, narrativeResult: "联合国程序缓慢。建设继续，边境农场受损。" } }
-        ]
-      }
-    ]
+    scenarios: []
   },
   hi: {
     title: "मध्य पूर्व आधिपत्य",
@@ -257,6 +322,7 @@ export const translations: Record<Language, any> = {
     restart: "फिर से",
     share: "साझा करें",
     feedback: "फीडबैक भेजें",
+    readText: "पाठ पढ़ें",
     stats: {
       military: "सैन्य",
       diplomacy: "कूटनीति",
@@ -271,17 +337,7 @@ export const translations: Record<Language, any> = {
       loading: "लोड हो रहा है...",
       error: "त्रुटि।"
     },
-    scenarios: [
-      {
-        title: "सीमा जल विवाद",
-        description: "पड़ोसी देश ने नदी पर एक बड़ा बांध बनाना शुरू कर दिया है, जिससे आपके कृषि संसाधन खतरे में हैं।",
-        choices: [
-          { id: "1a", label: "सैन्य प्रतिक्रिया", description: "सीमा पर सेना तैनात करें और हवाई हमले की धमकी दें।", impact: { military: 10, diplomacy: -15, territory: 0, economy: -5, narrativeResult: "दबाव में निर्माण रुक गया, लेकिन कूटनीतिक संबंध खराब हो गए।" } },
-          { id: "1b", label: "बातचीत", description: "जल प्रवाह की गारंटी के लिए ऊर्जा सहयोग का प्रस्ताव दें।", impact: { military: -5, diplomacy: 15, territory: 0, economy: 10, narrativeResult: "एक ऐतिहासिक समझौता हुआ।" } },
-          { id: "1c", label: "संयुक्त राष्ट्र में अपील", description: "अंतरराष्ट्रीय हस्तक्षेप की मांग करें।", impact: { military: 0, diplomacy: 5, territory: -5, economy: -5, narrativeResult: "प्रक्रिया धीमी है, निर्माण जारी है।" } }
-        ]
-      }
-    ]
+    scenarios: []
   },
   de: {
     title: "Hegemonie",
@@ -297,6 +353,7 @@ export const translations: Record<Language, any> = {
     restart: "Neustart",
     share: "Teilen",
     feedback: "Feedback",
+    readText: "Text vorlesen",
     stats: {
       military: "Militär",
       diplomacy: "Diplomatie",
@@ -311,17 +368,7 @@ export const translations: Record<Language, any> = {
       loading: "Laden...",
       error: "Fehler."
     },
-    scenarios: [
-      {
-        title: "Grenz-Wasserstreit",
-        description: "Ein Nachbarland baut einen Staudamm, der Ihre Landwirtschaft bedroht.",
-        choices: [
-          { id: "1a", label: "Militär", description: "Truppen entsenden und drohen.", impact: { military: 10, diplomacy: -15, territory: 0, economy: -5, narrativeResult: "Bau gestoppt, aber diplomatische Krise." } },
-          { id: "1b", label: "Verhandeln", description: "Energiekooperation gegen Wasser.", impact: { military: -5, diplomacy: 15, territory: 0, economy: 10, narrativeResult: "Historisches Abkommen erreicht." } },
-          { id: "1c", label: "UN-Appell", description: "Internationale Hilfe suchen.", impact: { military: 0, diplomacy: 5, territory: -5, economy: -5, narrativeResult: "Prozess zu langsam, Ernte leidet." } }
-        ]
-      }
-    ]
+    scenarios: []
   },
   es: {
     title: "Hegemonía",
@@ -337,6 +384,7 @@ export const translations: Record<Language, any> = {
     restart: "Reiniciar",
     share: "Compartir",
     feedback: "Feedback",
+    readText: "Leer texto",
     stats: {
       military: "Militar",
       diplomacy: "Diplomacia",
@@ -351,16 +399,13 @@ export const translations: Record<Language, any> = {
       loading: "Cargando...",
       error: "Error."
     },
-    scenarios: [
-      {
-        title: "Conflicto por el agua",
-        description: "Un país vecino construye una presa que amenaza tus recursos agrícolas.",
-        choices: [
-          { id: "1a", label: "Militar", description: "Desplegar tropas y amenazar con ataques.", impact: { military: 10, diplomacy: -15, territory: 0, economy: -5, narrativeResult: "La presión detuvo la obra, pero las relaciones se hundieron." } },
-          { id: "1b", label: "Negociar", description: "Ofrecer cooperación energética por agua.", impact: { military: -5, diplomacy: 15, territory: 0, economy: 10, narrativeResult: "Se alcanzó un acuerdo histórico." } },
-          { id: "1c", label: "Apelar a la ONU", description: "Buscar sanciones internacionales.", impact: { military: 0, diplomacy: 5, territory: -5, economy: -5, narrativeResult: "Proceso lento, el campo sufre." } }
-        ]
-      }
-    ]
+    scenarios: []
   }
 };
+
+// Filling in missing scenarios for other languages using English as fallback for now
+Object.keys(translations).forEach(lang => {
+  if (lang !== 'en' && lang !== 'he' && (!translations[lang].scenarios || translations[lang].scenarios.length === 0)) {
+    translations[lang].scenarios = JSON.parse(JSON.stringify(translations['en'].scenarios));
+  }
+});

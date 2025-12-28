@@ -1,10 +1,13 @@
 
-import React, { useState, useEffect, useCallback } from 'react';
+import React, { useState, useEffect, useCallback, useRef } from 'react';
 import { GameStats, Scenario, Choice, GameState, HistoryEntry, Language, Theme } from './types';
 import { translations } from './translations';
 import StatCard from './components/StatCard';
 import DecisionPanel from './components/DecisionPanel';
 import HistoryPanel from './components/HistoryPanel';
+import { motion, AnimatePresence } from 'framer-motion';
+import { GoogleGenAI, Modality } from "@google/genai";
+import { Volume2, VolumeX } from 'lucide-react';
 
 const INITIAL_STATS: GameStats = {
   military: 50,
@@ -17,6 +20,36 @@ const INITIAL_STATS: GameStats = {
 const VICTORY_TURN = 20;
 const VICTORY_THRESHOLD = 60;
 const SAVE_KEY = 'me_hegemony_save_v1';
+
+// Base64 helper for TTS
+function decodeBase64(base64: string) {
+  const binaryString = atob(base64);
+  const len = binaryString.length;
+  const bytes = new Uint8Array(len);
+  for (let i = 0; i < len; i++) {
+    bytes[i] = binaryString.charCodeAt(i);
+  }
+  return bytes;
+}
+
+async function decodeAudioData(
+  data: Uint8Array,
+  ctx: AudioContext,
+  sampleRate: number,
+  numChannels: number,
+): Promise<AudioBuffer> {
+  const dataInt16 = new Int16Array(data.buffer);
+  const frameCount = dataInt16.length / numChannels;
+  const buffer = ctx.createBuffer(numChannels, frameCount, sampleRate);
+
+  for (let channel = 0; channel < numChannels; channel++) {
+    const channelData = buffer.getChannelData(channel);
+    for (let i = 0; i < frameCount; i++) {
+      channelData[i] = dataInt16[i * numChannels + channel] / 32768.0;
+    }
+  }
+  return buffer;
+}
 
 const App: React.FC = () => {
   const [gameState, setGameState] = useState<GameState>(GameState.START);
@@ -33,6 +66,10 @@ const App: React.FC = () => {
   const [language, setLanguage] = useState<Language>('he');
   const [theme, setTheme] = useState<Theme>('dark');
   const [isGlitching, setIsGlitching] = useState(false);
+  const [isReading, setIsReading] = useState(false);
+
+  const audioContextRef = useRef<AudioContext | null>(null);
+  const currentSourceRef = useRef<AudioBufferSourceNode | null>(null);
 
   const t = translations[language];
   const isRtl = language === 'he';
@@ -43,6 +80,10 @@ const App: React.FC = () => {
     
     const savedTheme = localStorage.getItem('app_theme') as Theme;
     if (savedTheme) setTheme(savedTheme);
+
+    return () => {
+      if (audioContextRef.current) audioContextRef.current.close();
+    };
   }, []);
 
   useEffect(() => {
@@ -55,6 +96,55 @@ const App: React.FC = () => {
   }, [theme]);
 
   const toggleTheme = () => setTheme(prev => prev === 'dark' ? 'light' : 'dark');
+
+  const readText = async (text: string) => {
+    if (isReading) {
+      if (currentSourceRef.current) currentSourceRef.current.stop();
+      setIsReading(false);
+      return;
+    }
+
+    setIsReading(true);
+    try {
+      const ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
+      const response = await ai.models.generateContent({
+        model: "gemini-2.5-flash-preview-tts",
+        contents: [{ parts: [{ text }] }],
+        config: {
+          responseModalities: [Modality.AUDIO],
+          speechConfig: {
+            voiceConfig: {
+              prebuiltVoiceConfig: { voiceName: 'Kore' },
+            },
+          },
+        },
+      });
+
+      const base64Audio = response.candidates?.[0]?.content?.parts?.[0]?.inlineData?.data;
+      if (!base64Audio) throw new Error("No audio data received");
+
+      if (!audioContextRef.current) {
+        audioContextRef.current = new (window.AudioContext || (window as any).webkitAudioContext)({ sampleRate: 24000 });
+      }
+      
+      const audioBuffer = await decodeAudioData(
+        decodeBase64(base64Audio),
+        audioContextRef.current,
+        24000,
+        1
+      );
+
+      const source = audioContextRef.current.createBufferSource();
+      source.buffer = audioBuffer;
+      source.connect(audioContextRef.current.destination);
+      source.onended = () => setIsReading(false);
+      currentSourceRef.current = source;
+      source.start();
+    } catch (err) {
+      console.error("TTS Error:", err);
+      setIsReading(false);
+    }
+  };
 
   const saveGame = () => {
     const gameData = { stats, gameState, currentScenario, lastResult, history, language };
@@ -85,11 +175,9 @@ const App: React.FC = () => {
 
   const pickScenario = useCallback(() => {
     setLoading(true);
-    // Introduce a small artificial delay to maintain the 'loading' feel
     setTimeout(() => {
       const available = t.scenarios || [];
       if (available.length > 0) {
-        // Find a scenario that isn't the current one if possible
         let filtered = available.filter((s: Scenario) => s.title !== currentScenario?.title);
         if (filtered.length === 0) filtered = available;
         
@@ -159,6 +247,18 @@ const App: React.FC = () => {
     }
   };
 
+  const pageVariants = {
+    initial: { opacity: 0, x: 20 },
+    in: { opacity: 1, x: 0 },
+    out: { opacity: 0, x: -20 }
+  };
+
+  const pageTransition = {
+    type: "tween",
+    ease: "anticipate",
+    duration: 0.5
+  };
+
   return (
     <div className={`min-h-screen flex flex-col font-sans transition-colors duration-300 ${theme === 'dark' ? 'bg-slate-950 text-slate-100' : 'bg-slate-50 text-slate-900'}`} dir={isRtl ? 'rtl' : 'ltr'}>
       {isGlitching && <div className="glitch-overlay" />}
@@ -191,59 +291,122 @@ const App: React.FC = () => {
       </header>
 
       <main className="flex-grow container mx-auto max-w-5xl p-6 flex flex-col">
-        {gameState === GameState.START ? (
-          <div className="flex-grow flex flex-col items-center justify-center text-center max-w-2xl mx-auto py-12 animate-fade-up-strat">
-            <h2 className="text-5xl md:text-6xl font-extrabold mb-6 bg-gradient-to-r from-amber-400 to-amber-600 bg-clip-text text-transparent">{t.startTitle}</h2>
-            <p className="opacity-70 text-lg mb-10 leading-relaxed">{t.startDesc}</p>
-            <div className="flex flex-col sm:flex-row gap-4">
-              <button onClick={startGame} className="bg-amber-500 hover:bg-amber-600 text-slate-950 font-bold py-4 px-12 rounded-full text-xl transition-all shadow-xl shadow-amber-500/20">{t.newGame}</button>
-              {hasSavedGame && <button onClick={loadGame} className="bg-slate-800 hover:bg-slate-700 text-white font-bold py-4 px-12 rounded-full text-xl transition-all border border-slate-700">{t.loadGame}</button>}
-            </div>
-          </div>
-        ) : (
-          <div className="space-y-8 animate-fade-up-strat">
-            <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-              <StatCard label={t.stats.military} value={stats.military} color="text-red-400" icon={<svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 17v-6l8 4" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/></svg>} description="" />
-              <StatCard label={t.stats.diplomacy} value={stats.diplomacy} color="text-blue-400" icon={<svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0z" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/></svg>} description="" />
-              <StatCard label={t.stats.territory} value={stats.territory} color="text-emerald-400" icon={<svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path d="M9 20l-5.447-2.724A1 1 0 013 16.382V5.618a1 1 0 011.447-.894L9 7m0 13l6-3" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/></svg>} description="" />
-              <StatCard label={t.stats.economy} value={stats.economy} color="text-amber-400" icon={<svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/></svg>} description="" />
-            </div>
+        <AnimatePresence mode="wait">
+          {gameState === GameState.START ? (
+            <motion.div 
+              key="start"
+              initial="initial"
+              animate="in"
+              exit="out"
+              variants={pageVariants}
+              transition={pageTransition}
+              className="flex-grow flex flex-col items-center justify-center text-center max-w-2xl mx-auto py-12"
+            >
+              <h2 className="text-5xl md:text-6xl font-extrabold mb-6 bg-gradient-to-r from-amber-400 to-amber-600 bg-clip-text text-transparent">{t.startTitle}</h2>
+              <p className="opacity-70 text-lg mb-10 leading-relaxed">{t.startDesc}</p>
+              <div className="flex flex-col sm:flex-row gap-4">
+                <button onClick={startGame} className="bg-amber-500 hover:bg-amber-600 text-slate-950 font-bold py-4 px-12 rounded-full text-xl transition-all shadow-xl shadow-amber-500/20">{t.newGame}</button>
+                {hasSavedGame && <button onClick={loadGame} className="bg-slate-800 hover:bg-slate-700 text-white font-bold py-4 px-12 rounded-full text-xl transition-all border border-slate-700">{t.loadGame}</button>}
+              </div>
+            </motion.div>
+          ) : (
+            <motion.div 
+              key="playing"
+              initial="initial"
+              animate="in"
+              exit="out"
+              variants={pageVariants}
+              transition={pageTransition}
+              className="space-y-8"
+            >
+              <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+                <StatCard label={t.stats.military} value={stats.military} color="text-red-400" icon={<svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 17v-6l8 4" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/></svg>} description="" />
+                <StatCard label={t.stats.diplomacy} value={stats.diplomacy} color="text-blue-400" icon={<svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0z" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/></svg>} description="" />
+                <StatCard label={t.stats.territory} value={stats.territory} color="text-emerald-400" icon={<svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path d="M9 20l-5.447-2.724A1 1 0 013 16.382V5.618a1 1 0 011.447-.894L9 7m0 13l6-3" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/></svg>} description="" />
+                <StatCard label={t.stats.economy} value={stats.economy} color="text-amber-400" icon={<svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/></svg>} description="" />
+              </div>
 
-            <div className={`rounded-3xl border shadow-2xl overflow-hidden relative min-h-[450px] transition-all duration-500 backdrop-blur-sm ${theme === 'dark' ? 'bg-slate-900/80 border-slate-800' : 'bg-white border-slate-200'}`}>
-              {loading && <div className="absolute inset-0 flex flex-col items-center justify-center space-y-6 bg-black/40 backdrop-blur-md z-20 animate-in fade-in"><div className="w-16 h-16 border-4 border-amber-500/20 border-t-amber-500 rounded-full animate-spin"></div><p className="text-amber-500 font-bold tracking-widest uppercase text-xs">{t.ui.loading}</p></div>}
-              {gameState === GameState.PLAYING && currentScenario && (
-                <div className="p-8 md:p-10 animate-sweep">
-                  <span className="px-3 py-1 bg-amber-500/10 text-amber-500 rounded-full text-[10px] font-black uppercase tracking-[0.2em] mb-4 inline-block">{t.ui.intelReport}</span>
-                  <h2 className="text-3xl md:text-4xl font-black mb-6 leading-tight">{currentScenario.title}</h2>
-                  <p className="text-lg md:text-xl leading-relaxed mb-10 max-w-4xl opacity-80">{currentScenario.description}</p>
-                  <DecisionPanel choices={currentScenario.choices} onSelect={handleChoice} isLoading={loading} />
-                </div>
-              )}
-              {gameState === GameState.RESULT && (
-                <div className="p-8 md:p-10 animate-sweep flex flex-col h-full">
-                  <span className="px-3 py-1 bg-blue-500/10 text-blue-500 rounded-full text-[10px] font-black uppercase tracking-[0.2em] mb-4 inline-block">{t.ui.results}</span>
-                  <p className={`text-xl leading-relaxed mb-10 p-8 rounded-3xl border ${theme === 'dark' ? 'bg-slate-800/40 border-slate-700' : 'bg-slate-100 border-slate-200'} flex-grow`}>{lastResult}</p>
-                  <button onClick={nextTurn} className="w-full bg-blue-600 hover:bg-blue-500 text-white font-black py-5 rounded-2xl transition-all shadow-xl text-lg uppercase">{t.ui.nextTurn}</button>
-                </div>
-              )}
-              {gameState === GameState.GAME_OVER && (
-                <div className="p-12 text-center animate-sweep">
-                  <h2 className="text-5xl font-black mb-6 text-red-500">{t.gameOver}</h2>
-                  <button onClick={startGame} className="bg-white text-slate-950 hover:bg-slate-200 font-black py-4 px-14 rounded-full text-xl transition-all shadow-2xl">{t.restart}</button>
-                </div>
-              )}
-              {gameState === GameState.VICTORY && (
-                <div className="p-12 text-center animate-victory-zoom">
-                   <h2 className="text-6xl font-black mb-8 bg-gradient-to-r from-amber-400 to-yellow-600 bg-clip-text text-transparent">{t.victory}</h2>
-                   <div className="flex flex-col sm:flex-row gap-4 justify-center items-center">
-                    <button onClick={startGame} className="bg-amber-500 text-slate-950 font-black py-5 px-16 rounded-full text-2xl w-full sm:w-auto">{t.newGame}</button>
-                    <button onClick={handleShare} className="bg-slate-800 text-white font-black py-5 px-16 rounded-full text-2xl border border-slate-700 w-full sm:w-auto flex items-center gap-3 justify-center">{t.share}</button>
-                  </div>
-                </div>
-              )}
-            </div>
-          </div>
-        )}
+              <div className={`rounded-3xl border shadow-2xl overflow-hidden relative min-h-[450px] transition-all duration-500 backdrop-blur-sm ${theme === 'dark' ? 'bg-slate-900/80 border-slate-800' : 'bg-white border-slate-200'}`}>
+                {loading && <div className="absolute inset-0 flex flex-col items-center justify-center space-y-6 bg-black/40 backdrop-blur-md z-20 animate-in fade-in"><div className="w-16 h-16 border-4 border-amber-500/20 border-t-amber-500 rounded-full animate-spin"></div><p className="text-amber-500 font-bold tracking-widest uppercase text-xs">{t.ui.loading}</p></div>}
+                
+                <AnimatePresence mode="wait">
+                  {gameState === GameState.PLAYING && currentScenario && (
+                    <motion.div 
+                      key="playing-content"
+                      initial={{ opacity: 0, y: 20 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      exit={{ opacity: 0, y: -20 }}
+                      className="p-8 md:p-10"
+                    >
+                      <div className="flex justify-between items-start mb-4">
+                        <span className="px-3 py-1 bg-amber-500/10 text-amber-500 rounded-full text-[10px] font-black uppercase tracking-[0.2em] inline-block">{t.ui.intelReport}</span>
+                        <button 
+                          onClick={() => readText(currentScenario.description)}
+                          className={`p-2 rounded-full transition-all ${isReading ? 'bg-amber-500 text-slate-900 animate-pulse' : 'bg-slate-800 text-slate-400 hover:text-amber-500'}`}
+                          title={t.readText}
+                        >
+                          {isReading ? <VolumeX size={20} /> : <Volume2 size={20} />}
+                        </button>
+                      </div>
+                      <h2 className="text-3xl md:text-4xl font-black mb-6 leading-tight">{currentScenario.title}</h2>
+                      <p className="text-lg md:text-xl leading-relaxed mb-10 max-w-4xl opacity-80">{currentScenario.description}</p>
+                      <DecisionPanel choices={currentScenario.choices} onSelect={handleChoice} isLoading={loading} />
+                    </motion.div>
+                  )}
+
+                  {gameState === GameState.RESULT && (
+                    <motion.div 
+                      key="result-content"
+                      initial={{ opacity: 0, scale: 0.95 }}
+                      animate={{ opacity: 1, scale: 1 }}
+                      exit={{ opacity: 0, scale: 1.05 }}
+                      className="p-8 md:p-10 flex flex-col h-full"
+                    >
+                      <div className="flex justify-between items-start mb-4">
+                        <span className="px-3 py-1 bg-blue-500/10 text-blue-500 rounded-full text-[10px] font-black uppercase tracking-[0.2em] inline-block">{t.ui.results}</span>
+                        <button 
+                          onClick={() => readText(lastResult)}
+                          className={`p-2 rounded-full transition-all ${isReading ? 'bg-blue-500 text-white animate-pulse' : 'bg-slate-800 text-slate-400 hover:text-blue-500'}`}
+                        >
+                          {isReading ? <VolumeX size={20} /> : <Volume2 size={20} />}
+                        </button>
+                      </div>
+                      <p className={`text-xl leading-relaxed mb-10 p-8 rounded-3xl border ${theme === 'dark' ? 'bg-slate-800/40 border-slate-700' : 'bg-slate-100 border-slate-200'} flex-grow`}>{lastResult}</p>
+                      <button onClick={nextTurn} className="w-full bg-blue-600 hover:bg-blue-500 text-white font-black py-5 rounded-2xl transition-all shadow-xl text-lg uppercase">{t.ui.nextTurn}</button>
+                    </motion.div>
+                  )}
+
+                  {gameState === GameState.GAME_OVER && (
+                    <motion.div 
+                      key="gameover-content"
+                      initial={{ opacity: 0, y: 50 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      className="p-12 text-center"
+                    >
+                      <h2 className="text-5xl font-black mb-6 text-red-500">{t.gameOver}</h2>
+                      <button onClick={startGame} className="bg-white text-slate-950 hover:bg-slate-200 font-black py-4 px-14 rounded-full text-xl transition-all shadow-2xl">{t.restart}</button>
+                    </motion.div>
+                  )}
+
+                  {gameState === GameState.VICTORY && (
+                    <motion.div 
+                      key="victory-content"
+                      initial={{ opacity: 0, scale: 0.5 }}
+                      animate={{ opacity: 1, scale: 1 }}
+                      className="p-12 text-center"
+                    >
+                      <h2 className="text-6xl font-black mb-8 bg-gradient-to-r from-amber-400 to-yellow-600 bg-clip-text text-transparent">{t.victory}</h2>
+                      <div className="flex flex-col sm:flex-row gap-4 justify-center items-center">
+                        <button onClick={startGame} className="bg-amber-500 text-slate-950 font-black py-5 px-16 rounded-full text-2xl w-full sm:w-auto">{t.newGame}</button>
+                        <button onClick={handleShare} className="bg-slate-800 text-white font-black py-5 px-16 rounded-full text-2xl border border-slate-700 w-full sm:w-auto flex items-center gap-3 justify-center">{t.share}</button>
+                      </div>
+                    </motion.div>
+                  )}
+                </AnimatePresence>
+              </div>
+            </motion.div>
+          )}
+        </AnimatePresence>
       </main>
 
       <HistoryPanel history={history} isOpen={isHistoryOpen} onClose={() => setIsHistoryOpen(false)} />
