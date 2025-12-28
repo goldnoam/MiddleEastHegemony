@@ -6,7 +6,7 @@ import StatCard from './components/StatCard';
 import DecisionPanel from './components/DecisionPanel';
 import HistoryPanel from './components/HistoryPanel';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Volume2, VolumeX } from 'lucide-react';
+import { Volume2, VolumeX, Shield, Globe, Users, TrendingUp } from 'lucide-react';
 
 const INITIAL_STATS: GameStats = {
   military: 50,
@@ -109,6 +109,7 @@ const App: React.FC = () => {
   const [history, setHistory] = useState<HistoryEntry[]>([]);
   const [isHistoryOpen, setIsHistoryOpen] = useState<boolean>(false);
   const [loading, setLoading] = useState<boolean>(false);
+  const [loadingText, setLoadingText] = useState<string>('');
   const [error, setError] = useState<string | null>(null);
   const [saveStatus, setSaveStatus] = useState<string | null>(null);
   const [hasSavedGame, setHasSavedGame] = useState<boolean>(false);
@@ -120,6 +121,14 @@ const App: React.FC = () => {
 
   const t = translations[language];
   const isRtl = language === 'he';
+
+  const loadingMessages = useMemo(() => [
+    t.ui.loading,
+    isRtl ? "מנתח נתונים גיאופוליטיים..." : "Analyzing geopolitical data...",
+    isRtl ? "מעבד דוחות מודיעין..." : "Processing intelligence reports...",
+    isRtl ? "מסנכרן כוחות בשטח..." : "Synchronizing field assets...",
+    isRtl ? "מחשב השלכות אסטרטגיות..." : "Calculating strategic impacts..."
+  ], [t.ui.loading, isRtl]);
 
   useEffect(() => {
     const saved = localStorage.getItem(SAVE_KEY);
@@ -155,7 +164,6 @@ const App: React.FC = () => {
     const utterance = new SpeechSynthesisUtterance(text);
     utterance.lang = langMap[language] || 'en-US';
     
-    // Attempt to find a better voice for the language if possible
     const voices = window.speechSynthesis.getVoices();
     const voice = voices.find(v => v.lang.startsWith(language));
     if (voice) utterance.voice = voice;
@@ -196,6 +204,7 @@ const App: React.FC = () => {
 
   const pickScenario = useCallback(() => {
     setLoading(true);
+    setLoadingText(loadingMessages[Math.floor(Math.random() * loadingMessages.length)]);
     window.speechSynthesis.cancel();
     setIsReading(false);
     
@@ -212,8 +221,8 @@ const App: React.FC = () => {
         setError(t.ui.error);
       }
       setLoading(false);
-    }, 800);
-  }, [currentScenario, t.scenarios, t.ui.error]);
+    }, 1200);
+  }, [currentScenario, t.scenarios, t.ui.error, loadingMessages]);
 
   const startGame = () => {
     setStats(INITIAL_STATS);
@@ -242,6 +251,7 @@ const App: React.FC = () => {
       setHistory(prev => [{
         turn: stats.turn,
         scenarioTitle: currentScenario.title,
+        scenarioDescription: currentScenario.description,
         choiceLabel: choice.label,
         resultText: choice.impact.narrativeResult
       }, ...prev]);
@@ -348,10 +358,10 @@ const App: React.FC = () => {
               className="space-y-8"
             >
               <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-                <StatCard label={t.stats.military} value={stats.military} color="text-red-400" icon={<svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 17v-6l8 4" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/></svg>} description="" />
-                <StatCard label={t.stats.diplomacy} value={stats.diplomacy} color="text-blue-400" icon={<svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0z" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/></svg>} description="" />
-                <StatCard label={t.stats.territory} value={stats.territory} color="text-emerald-400" icon={<svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path d="M9 20l-5.447-2.724A1 1 0 013 16.382V5.618a1 1 0 011.447-.894L9 7m0 13l6-3" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/></svg>} description="" />
-                <StatCard label={t.stats.economy} value={stats.economy} color="text-amber-400" icon={<svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/></svg>} description="" />
+                <StatCard label={t.stats.military} value={stats.military} color="text-red-400" icon={<Shield className="w-5 h-5" />} description="" />
+                <StatCard label={t.stats.diplomacy} value={stats.diplomacy} color="text-blue-400" icon={<Globe className="w-5 h-5" />} description="" />
+                <StatCard label={t.stats.territory} value={stats.territory} color="text-emerald-400" icon={<Users className="w-5 h-5" />} description="" />
+                <StatCard label={t.stats.economy} value={stats.economy} color="text-amber-400" icon={<TrendingUp className="w-5 h-5" />} description="" />
               </div>
 
               <div className={`rounded-3xl border shadow-2xl overflow-hidden relative min-h-[450px] transition-all duration-500 backdrop-blur-xl ${theme === 'dark' ? 'bg-slate-900/40 border-slate-800' : 'bg-white/40 border-slate-200'}`}>
@@ -361,10 +371,29 @@ const App: React.FC = () => {
                       initial={{ opacity: 0 }}
                       animate={{ opacity: 1 }}
                       exit={{ opacity: 0 }}
-                      className="absolute inset-0 flex flex-col items-center justify-center space-y-6 bg-black/40 backdrop-blur-md z-30"
+                      className="absolute inset-0 flex flex-col items-center justify-center space-y-6 bg-slate-950/80 backdrop-blur-xl z-30"
                     >
-                      <div className="w-16 h-16 border-4 border-amber-500/20 border-t-amber-500 rounded-full animate-spin"></div>
-                      <p className="text-amber-500 font-bold tracking-widest uppercase text-xs animate-pulse">{t.ui.loading}</p>
+                      <div className="relative">
+                        <div className="w-20 h-20 border-4 border-amber-500/10 border-t-amber-500 rounded-full animate-spin"></div>
+                        <div className="absolute inset-0 flex items-center justify-center">
+                          <div className="w-8 h-8 bg-amber-500/20 rounded-full animate-pulse"></div>
+                        </div>
+                      </div>
+                      <div className="text-center space-y-2">
+                        <p className="text-amber-500 font-black tracking-[0.2em] uppercase text-xs animate-pulse">
+                          {loadingText}
+                        </p>
+                        <div className="flex gap-1 justify-center">
+                          {[1, 2, 3].map(i => (
+                            <motion.div 
+                              key={i}
+                              animate={{ opacity: [0.2, 1, 0.2] }}
+                              transition={{ duration: 1, repeat: Infinity, delay: i * 0.2 }}
+                              className="w-1.5 h-1.5 bg-amber-500 rounded-full"
+                            />
+                          ))}
+                        </div>
+                      </div>
                     </motion.div>
                   )}
                 </AnimatePresence>
@@ -381,11 +410,12 @@ const App: React.FC = () => {
                       <div className="flex justify-between items-start mb-4">
                         <span className="px-3 py-1 bg-amber-500/10 text-amber-500 rounded-full text-[10px] font-black uppercase tracking-[0.2em] inline-block">{t.ui.intelReport}</span>
                         <button 
-                          onClick={() => readText(currentScenario.description)}
-                          className={`p-2 rounded-full transition-all ${isReading ? 'bg-amber-500 text-slate-900 animate-pulse' : 'bg-slate-800/20 text-slate-400 hover:text-amber-500 backdrop-blur-sm'}`}
+                          onClick={() => readText(`${currentScenario.title}. ${currentScenario.description}`)}
+                          className={`p-2.5 rounded-xl transition-all flex items-center gap-2 ${isReading ? 'bg-amber-500 text-slate-900 shadow-lg shadow-amber-500/20' : 'bg-slate-800/40 text-slate-400 hover:text-amber-500 backdrop-blur-sm border border-slate-700/50'}`}
                           title={t.readText}
                         >
-                          {isReading ? <VolumeX size={20} /> : <Volume2 size={20} />}
+                          {isReading ? <VolumeX size={18} /> : <Volume2 size={18} />}
+                          <span className="text-[10px] font-bold uppercase tracking-wider">{isReading ? (isRtl ? 'מפסיק...' : 'Stop') : (isRtl ? 'הקרא אינטל' : 'Read Intel')}</span>
                         </button>
                       </div>
                       <h2 className="text-3xl md:text-4xl font-black mb-6 leading-tight">{currentScenario.title}</h2>
@@ -406,13 +436,14 @@ const App: React.FC = () => {
                         <span className="px-3 py-1 bg-blue-500/10 text-blue-500 rounded-full text-[10px] font-black uppercase tracking-[0.2em] inline-block">{t.ui.results}</span>
                         <button 
                           onClick={() => readText(lastResult)}
-                          className={`p-2 rounded-full transition-all ${isReading ? 'bg-blue-500 text-white animate-pulse' : 'bg-slate-800/20 text-slate-400 hover:text-blue-500 backdrop-blur-sm'}`}
+                          className={`p-2.5 rounded-xl transition-all flex items-center gap-2 ${isReading ? 'bg-blue-500 text-white shadow-lg shadow-blue-500/20' : 'bg-slate-800/40 text-slate-400 hover:text-blue-500 backdrop-blur-sm border border-slate-700/50'}`}
                         >
-                          {isReading ? <VolumeX size={20} /> : <Volume2 size={20} />}
+                          {isReading ? <VolumeX size={18} /> : <Volume2 size={18} />}
+                          <span className="text-[10px] font-bold uppercase tracking-wider">{isReading ? (isRtl ? 'מפסיק...' : 'Stop') : (isRtl ? 'הקרא סיכום' : 'Read Result')}</span>
                         </button>
                       </div>
-                      <p className={`text-xl leading-relaxed mb-10 p-8 rounded-3xl border ${theme === 'dark' ? 'bg-slate-800/40 border-slate-700' : 'bg-slate-100/40 border-slate-200'} flex-grow`}>{lastResult}</p>
-                      <button onClick={nextTurn} className="w-full bg-blue-600 hover:bg-blue-500 text-white font-black py-5 rounded-2xl transition-all shadow-xl text-lg uppercase">{t.ui.nextTurn}</button>
+                      <p className={`text-xl leading-relaxed mb-10 p-8 rounded-3xl border ${theme === 'dark' ? 'bg-slate-800/40 border-slate-700' : 'bg-slate-100/40 border-slate-200'} flex-grow shadow-inner`}>{lastResult}</p>
+                      <button onClick={nextTurn} className="w-full bg-blue-600 hover:bg-blue-500 text-white font-black py-5 rounded-2xl transition-all shadow-xl text-lg uppercase tracking-widest">{t.ui.nextTurn}</button>
                     </motion.div>
                   )}
 
@@ -437,8 +468,8 @@ const App: React.FC = () => {
                     >
                       <h2 className="text-6xl font-black mb-8 bg-gradient-to-r from-amber-400 to-yellow-600 bg-clip-text text-transparent">{t.victory}</h2>
                       <div className="flex flex-col sm:flex-row gap-4 justify-center items-center">
-                        <button onClick={startGame} className="bg-amber-500 text-slate-950 font-black py-5 px-16 rounded-full text-2xl w-full sm:w-auto">{t.newGame}</button>
-                        <button onClick={handleShare} className="bg-slate-800 text-white font-black py-5 px-16 rounded-full text-2xl border border-slate-700 w-full sm:w-auto flex items-center gap-3 justify-center">{t.share}</button>
+                        <button onClick={startGame} className="bg-amber-500 text-slate-950 font-black py-5 px-16 rounded-full text-2xl w-full sm:w-auto shadow-xl shadow-amber-500/20">{t.newGame}</button>
+                        <button onClick={handleShare} className="bg-slate-800 text-white font-black py-5 px-16 rounded-full text-2xl border border-slate-700 w-full sm:w-auto flex items-center gap-3 justify-center hover:bg-slate-700 transition-colors">{t.share}</button>
                       </div>
                     </motion.div>
                   )}
@@ -449,7 +480,14 @@ const App: React.FC = () => {
         </AnimatePresence>
       </main>
 
-      <HistoryPanel history={history} isOpen={isHistoryOpen} onClose={() => setIsHistoryOpen(false)} />
+      <HistoryPanel 
+        history={history} 
+        isOpen={isHistoryOpen} 
+        onClose={() => setIsHistoryOpen(false)} 
+        onRead={readText}
+        isReading={isReading}
+        language={language}
+      />
 
       <footer className={`p-8 text-center text-[10px] border-t transition-colors ${theme === 'dark' ? 'border-slate-800 bg-slate-950/30' : 'border-slate-200 bg-slate-100/30'} backdrop-blur-md`}>
         <p className="opacity-50 font-bold mb-2 uppercase tracking-widest">(C) Noam Gold AI 2025</p>

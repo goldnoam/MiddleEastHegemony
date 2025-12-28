@@ -14,15 +14,31 @@ const DecisionPanel: React.FC<DecisionPanelProps> = ({ choices, onSelect, isLoad
     <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mt-8 relative">
       <AnimatePresence mode="popLayout">
         {isLoading ? (
-          // Skeleton loading state
+          // Strategic Skeleton loading state
           [1, 2, 3].map((i) => (
             <motion.div
               key={`skeleton-${i}`}
               initial={{ opacity: 0, scale: 0.95 }}
               animate={{ opacity: 1, scale: 1 }}
               exit={{ opacity: 0, scale: 1.05 }}
-              className="h-40 bg-slate-800/10 rounded-3xl animate-pulse border border-slate-700/20"
-            />
+              className="h-44 bg-slate-800/20 rounded-3xl overflow-hidden border border-slate-700/30 flex flex-col items-center justify-center relative p-6"
+            >
+              {/* Scanline Effect */}
+              <motion.div 
+                animate={{ top: ['-10%', '110%'] }}
+                transition={{ duration: 1.5, repeat: Infinity, ease: "linear" }}
+                className="absolute left-0 right-0 h-1 bg-amber-500/20 blur-sm z-10"
+              />
+              
+              <div className="w-3/4 h-4 bg-slate-700/40 rounded-full mb-4 animate-pulse" />
+              <div className="w-full h-2 bg-slate-700/20 rounded-full mb-2 animate-pulse" />
+              <div className="w-5/6 h-2 bg-slate-700/20 rounded-full mb-2 animate-pulse" />
+              <div className="w-4/6 h-2 bg-slate-700/20 rounded-full animate-pulse" />
+              
+              <div className="absolute bottom-4 right-6 text-[8px] font-mono text-amber-500/30 tracking-widest uppercase">
+                Analyzing Option 0{i}
+              </div>
+            </motion.div>
           ))
         ) : (
           choices.map((choice) => (
@@ -33,7 +49,7 @@ const DecisionPanel: React.FC<DecisionPanelProps> = ({ choices, onSelect, isLoad
               exit={{ opacity: 0, scale: 0.95 }}
               disabled={isLoading}
               onClick={() => onSelect(choice)}
-              className="group relative bg-slate-800/60 backdrop-blur-sm hover:bg-slate-700/80 p-6 rounded-3xl border border-slate-700/50 hover:border-amber-500/40 transition-all duration-300 text-right flex flex-col items-end disabled:opacity-50 disabled:cursor-not-allowed shadow-lg hover:shadow-2xl hover:shadow-amber-500/5 hover:-translate-y-1 active:scale-95 min-h-[160px]"
+              className="group relative bg-slate-800/40 backdrop-blur-md hover:bg-slate-700/60 p-6 rounded-3xl border border-slate-700/50 hover:border-amber-500/40 transition-all duration-300 text-right flex flex-col items-end disabled:opacity-50 disabled:cursor-not-allowed shadow-lg hover:shadow-2xl hover:shadow-amber-500/10 hover:-translate-y-1 active:scale-95 min-h-[160px]"
             >
               {/* Action indicator icon */}
               <div className="absolute top-4 left-4 opacity-0 group-hover:opacity-100 transition-all duration-300 -translate-x-2 group-hover:translate-x-0">

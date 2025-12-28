@@ -34,6 +34,7 @@ export interface Scenario {
 export interface HistoryEntry {
   turn: number;
   scenarioTitle: string;
+  scenarioDescription: string;
   choiceLabel: string;
   resultText: string;
 }
