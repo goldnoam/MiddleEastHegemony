@@ -1,0 +1,55 @@
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  body {
+    @apply transition-colors duration-300;
+  }
+}
+
+.glitch-overlay {
+  @apply fixed inset-0 z-[100] pointer-events-none mix-blend-difference;
+  background: rgba(255, 255, 255, 0.1);
+}
+
+.glitch-overlay::before,
+.glitch-overlay::after {
+  content: '';
+  @apply absolute inset-0;
+  background: inherit;
+}
+
+.glitch-overlay::before {
+  @apply animate-glitch;
+  color: #ff00ff;
+  left: 2px;
+  text-shadow: -2px 0 #ff00ff;
+}
+
+.glitch-overlay::after {
+  @apply animate-glitch;
+  color: #00ffff;
+  left: -2px;
+  text-shadow: 2px 0 #00ffff;
+  animation-delay: -0.1s;
+}
+
+@keyframes sweep-in {
+    from { transform: translateX(30px); opacity: 0; filter: blur(10px); }
+    to { transform: translateX(0); opacity: 1; filter: blur(0); }
+}
+
+@keyframes fade-up-strategic {
+    from { transform: translateY(20px); opacity: 0; }
+    to { transform: translateY(0); opacity: 1; }
+}
+
+.animate-sweep {
+    animation: sweep-in 0.6s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
+
+.animate-fade-up-strat {
+    animation: fade-up-strategic 0.5s ease-out forwards;
+}
