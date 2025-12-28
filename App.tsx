@@ -1,12 +1,11 @@
 
-import React, { useState, useEffect, useCallback, useRef } from 'react';
+import React, { useState, useEffect, useCallback, useRef, useMemo } from 'react';
 import { GameStats, Scenario, Choice, GameState, HistoryEntry, Language, Theme } from './types';
 import { translations } from './translations';
 import StatCard from './components/StatCard';
 import DecisionPanel from './components/DecisionPanel';
 import HistoryPanel from './components/HistoryPanel';
 import { motion, AnimatePresence } from 'framer-motion';
-import { GoogleGenAI, Modality } from "@google/genai";
 import { Volume2, VolumeX } from 'lucide-react';
 
 const INITIAL_STATS: GameStats = {
@@ -21,35 +20,86 @@ const VICTORY_TURN = 20;
 const VICTORY_THRESHOLD = 60;
 const SAVE_KEY = 'me_hegemony_save_v1';
 
-// Base64 helper for TTS
-function decodeBase64(base64: string) {
-  const binaryString = atob(base64);
-  const len = binaryString.length;
-  const bytes = new Uint8Array(len);
-  for (let i = 0; i < len; i++) {
-    bytes[i] = binaryString.charCodeAt(i);
-  }
-  return bytes;
-}
+const langMap: Record<Language, string> = {
+  he: 'he-IL',
+  en: 'en-US',
+  ru: 'ru-RU',
+  zh: 'zh-CN',
+  hi: 'hi-IN',
+  de: 'de-DE',
+  es: 'es-ES'
+};
 
-async function decodeAudioData(
-  data: Uint8Array,
-  ctx: AudioContext,
-  sampleRate: number,
-  numChannels: number,
-): Promise<AudioBuffer> {
-  const dataInt16 = new Int16Array(data.buffer);
-  const frameCount = dataInt16.length / numChannels;
-  const buffer = ctx.createBuffer(numChannels, frameCount, sampleRate);
+const DynamicBackground: React.FC<{ stats: GameStats; theme: Theme }> = ({ stats, theme }) => {
+  const dominantStat = useMemo(() => {
+    const { military, diplomacy, economy, territory } = stats;
+    const max = Math.max(military, diplomacy, economy, territory);
+    if (military === max) return 'military';
+    if (diplomacy === max) return 'diplomacy';
+    if (economy === max) return 'economy';
+    return 'territory';
+  }, [stats]);
 
-  for (let channel = 0; channel < numChannels; channel++) {
-    const channelData = buffer.getChannelData(channel);
-    for (let i = 0; i < frameCount; i++) {
-      channelData[i] = dataInt16[i * numChannels + channel] / 32768.0;
+  const bgConfig = {
+    military: {
+      color: theme === 'dark' ? 'rgba(153, 27, 27, 0.15)' : 'rgba(254, 226, 226, 0.5)',
+      accent: 'rgba(239, 68, 68, 0.2)',
+      pattern: 'repeating-linear-gradient(45deg, transparent, transparent 20px, rgba(239,68,68,0.03) 20px, rgba(239,68,68,0.03) 40px)'
+    },
+    diplomacy: {
+      color: theme === 'dark' ? 'rgba(30, 58, 138, 0.15)' : 'rgba(219, 234, 254, 0.5)',
+      accent: 'rgba(59, 130, 246, 0.2)',
+      pattern: 'radial-gradient(circle at center, rgba(59,130,246,0.05) 0%, transparent 70%)'
+    },
+    economy: {
+      color: theme === 'dark' ? 'rgba(120, 53, 15, 0.15)' : 'rgba(254, 243, 199, 0.5)',
+      accent: 'rgba(245, 158, 11, 0.2)',
+      pattern: 'linear-gradient(90deg, transparent 49%, rgba(245,158,11,0.02) 50%, transparent 51%)'
+    },
+    territory: {
+      color: theme === 'dark' ? 'rgba(6, 78, 59, 0.15)' : 'rgba(209, 250, 229, 0.5)',
+      accent: 'rgba(16, 185, 129, 0.2)',
+      pattern: 'conic-gradient(from 180deg at 50% 50%, rgba(16,185,129,0.02) 0deg, transparent 90deg, rgba(16,185,129,0.02) 180deg)'
     }
-  }
-  return buffer;
-}
+  };
+
+  const current = bgConfig[dominantStat];
+
+  return (
+    <div className="fixed inset-0 -z-10 overflow-hidden pointer-events-none transition-colors duration-1000" style={{ backgroundColor: theme === 'dark' ? '#020617' : '#f8fafc' }}>
+      <motion.div
+        animate={{
+          backgroundColor: current.color,
+          backgroundImage: current.pattern
+        }}
+        transition={{ duration: 2, ease: "easeInOut" }}
+        className="absolute inset-0 opacity-40"
+      />
+      <motion.div
+        animate={{
+          scale: [1, 1.1, 1],
+          opacity: [0.3, 0.5, 0.3],
+          x: [0, 20, 0],
+          y: [0, -20, 0],
+        }}
+        transition={{ duration: 15, repeat: Infinity, ease: "easeInOut" }}
+        className="absolute -top-1/4 -left-1/4 w-full h-full rounded-full blur-[120px]"
+        style={{ backgroundColor: current.accent }}
+      />
+      <motion.div
+        animate={{
+          scale: [1, 1.2, 1],
+          opacity: [0.2, 0.4, 0.2],
+          x: [0, -30, 0],
+          y: [0, 40, 0],
+        }}
+        transition={{ duration: 20, repeat: Infinity, ease: "easeInOut", delay: 2 }}
+        className="absolute -bottom-1/4 -right-1/4 w-full h-full rounded-full blur-[150px]"
+        style={{ backgroundColor: current.accent }}
+      />
+    </div>
+  );
+};
 
 const App: React.FC = () => {
   const [gameState, setGameState] = useState<GameState>(GameState.START);
@@ -68,9 +118,6 @@ const App: React.FC = () => {
   const [isGlitching, setIsGlitching] = useState(false);
   const [isReading, setIsReading] = useState(false);
 
-  const audioContextRef = useRef<AudioContext | null>(null);
-  const currentSourceRef = useRef<AudioBufferSourceNode | null>(null);
-
   const t = translations[language];
   const isRtl = language === 'he';
 
@@ -82,7 +129,7 @@ const App: React.FC = () => {
     if (savedTheme) setTheme(savedTheme);
 
     return () => {
-      if (audioContextRef.current) audioContextRef.current.close();
+      window.speechSynthesis.cancel();
     };
   }, []);
 
@@ -97,53 +144,27 @@ const App: React.FC = () => {
 
   const toggleTheme = () => setTheme(prev => prev === 'dark' ? 'light' : 'dark');
 
-  const readText = async (text: string) => {
+  const readText = (text: string) => {
     if (isReading) {
-      if (currentSourceRef.current) currentSourceRef.current.stop();
+      window.speechSynthesis.cancel();
       setIsReading(false);
       return;
     }
 
+    window.speechSynthesis.cancel();
+    const utterance = new SpeechSynthesisUtterance(text);
+    utterance.lang = langMap[language] || 'en-US';
+    
+    // Attempt to find a better voice for the language if possible
+    const voices = window.speechSynthesis.getVoices();
+    const voice = voices.find(v => v.lang.startsWith(language));
+    if (voice) utterance.voice = voice;
+
+    utterance.onend = () => setIsReading(false);
+    utterance.onerror = () => setIsReading(false);
+
     setIsReading(true);
-    try {
-      const ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
-      const response = await ai.models.generateContent({
-        model: "gemini-2.5-flash-preview-tts",
-        contents: [{ parts: [{ text }] }],
-        config: {
-          responseModalities: [Modality.AUDIO],
-          speechConfig: {
-            voiceConfig: {
-              prebuiltVoiceConfig: { voiceName: 'Kore' },
-            },
-          },
-        },
-      });
-
-      const base64Audio = response.candidates?.[0]?.content?.parts?.[0]?.inlineData?.data;
-      if (!base64Audio) throw new Error("No audio data received");
-
-      if (!audioContextRef.current) {
-        audioContextRef.current = new (window.AudioContext || (window as any).webkitAudioContext)({ sampleRate: 24000 });
-      }
-      
-      const audioBuffer = await decodeAudioData(
-        decodeBase64(base64Audio),
-        audioContextRef.current,
-        24000,
-        1
-      );
-
-      const source = audioContextRef.current.createBufferSource();
-      source.buffer = audioBuffer;
-      source.connect(audioContextRef.current.destination);
-      source.onended = () => setIsReading(false);
-      currentSourceRef.current = source;
-      source.start();
-    } catch (err) {
-      console.error("TTS Error:", err);
-      setIsReading(false);
-    }
+    window.speechSynthesis.speak(utterance);
   };
 
   const saveGame = () => {
@@ -175,6 +196,9 @@ const App: React.FC = () => {
 
   const pickScenario = useCallback(() => {
     setLoading(true);
+    window.speechSynthesis.cancel();
+    setIsReading(false);
+    
     setTimeout(() => {
       const available = t.scenarios || [];
       if (available.length > 0) {
@@ -188,7 +212,7 @@ const App: React.FC = () => {
         setError(t.ui.error);
       }
       setLoading(false);
-    }, 600);
+    }, 800);
   }, [currentScenario, t.scenarios, t.ui.error]);
 
   const startGame = () => {
@@ -202,6 +226,9 @@ const App: React.FC = () => {
     if (!currentScenario) return;
 
     setIsGlitching(true);
+    window.speechSynthesis.cancel();
+    setIsReading(false);
+
     setTimeout(() => {
       setIsGlitching(false);
       const newStats = {
@@ -260,17 +287,18 @@ const App: React.FC = () => {
   };
 
   return (
-    <div className={`min-h-screen flex flex-col font-sans transition-colors duration-300 ${theme === 'dark' ? 'bg-slate-950 text-slate-100' : 'bg-slate-50 text-slate-900'}`} dir={isRtl ? 'rtl' : 'ltr'}>
+    <div className={`min-h-screen flex flex-col font-sans transition-colors duration-300 ${theme === 'dark' ? 'text-slate-100' : 'text-slate-900'}`} dir={isRtl ? 'rtl' : 'ltr'}>
+      <DynamicBackground stats={stats} theme={theme} />
       {isGlitching && <div className="glitch-overlay" />}
       
-      <header className={`border-b sticky top-0 z-50 px-6 py-4 flex justify-between items-center ${theme === 'dark' ? 'border-slate-800 bg-slate-900/50' : 'border-slate-200 bg-white/80'} backdrop-blur-md`}>
+      <header className={`border-b sticky top-0 z-50 px-6 py-4 flex justify-between items-center ${theme === 'dark' ? 'border-slate-800 bg-slate-950/50' : 'border-slate-200 bg-white/50'} backdrop-blur-xl`}>
         <div className="flex items-center gap-3">
           <div className="w-10 h-10 bg-amber-500 rounded-lg flex items-center justify-center text-slate-900 font-bold text-xl shadow-lg">ME</div>
           <h1 className="text-xl font-bold hidden md:block">{t.title}</h1>
         </div>
         
         <div className="flex items-center gap-3">
-          <div className={`flex items-center rounded-xl p-1 ${theme === 'dark' ? 'bg-slate-800' : 'bg-slate-100'}`}>
+          <div className={`flex items-center rounded-xl p-1 ${theme === 'dark' ? 'bg-slate-800' : 'bg-slate-200/50'}`}>
             <button onClick={toggleTheme} className="p-2 rounded-lg hover:bg-slate-700/50 transition-colors">
               {theme === 'dark' ? <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path d="M12 3v1m0 16v1m9-9h-1M4 12H3m15.364-6.364l-.707.707M6.343 17.657l-.707.707M17.657 17.657l-.707-.707M6.343 6.343l-.707-.707M12 8a4 4 0 100 8 4 4 0 000-8z" strokeWidth="2"/></svg> : <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path d="M20.354 15.354A9 9 0 018.646 3.646 9.003 9.003 0 0012 21a9.003 9.003 0 008.354-5.646z" strokeWidth="2"/></svg>}
             </button>
@@ -326,8 +354,20 @@ const App: React.FC = () => {
                 <StatCard label={t.stats.economy} value={stats.economy} color="text-amber-400" icon={<svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/></svg>} description="" />
               </div>
 
-              <div className={`rounded-3xl border shadow-2xl overflow-hidden relative min-h-[450px] transition-all duration-500 backdrop-blur-sm ${theme === 'dark' ? 'bg-slate-900/80 border-slate-800' : 'bg-white border-slate-200'}`}>
-                {loading && <div className="absolute inset-0 flex flex-col items-center justify-center space-y-6 bg-black/40 backdrop-blur-md z-20 animate-in fade-in"><div className="w-16 h-16 border-4 border-amber-500/20 border-t-amber-500 rounded-full animate-spin"></div><p className="text-amber-500 font-bold tracking-widest uppercase text-xs">{t.ui.loading}</p></div>}
+              <div className={`rounded-3xl border shadow-2xl overflow-hidden relative min-h-[450px] transition-all duration-500 backdrop-blur-xl ${theme === 'dark' ? 'bg-slate-900/40 border-slate-800' : 'bg-white/40 border-slate-200'}`}>
+                <AnimatePresence>
+                  {loading && (
+                    <motion.div 
+                      initial={{ opacity: 0 }}
+                      animate={{ opacity: 1 }}
+                      exit={{ opacity: 0 }}
+                      className="absolute inset-0 flex flex-col items-center justify-center space-y-6 bg-black/40 backdrop-blur-md z-30"
+                    >
+                      <div className="w-16 h-16 border-4 border-amber-500/20 border-t-amber-500 rounded-full animate-spin"></div>
+                      <p className="text-amber-500 font-bold tracking-widest uppercase text-xs animate-pulse">{t.ui.loading}</p>
+                    </motion.div>
+                  )}
+                </AnimatePresence>
                 
                 <AnimatePresence mode="wait">
                   {gameState === GameState.PLAYING && currentScenario && (
@@ -342,7 +382,7 @@ const App: React.FC = () => {
                         <span className="px-3 py-1 bg-amber-500/10 text-amber-500 rounded-full text-[10px] font-black uppercase tracking-[0.2em] inline-block">{t.ui.intelReport}</span>
                         <button 
                           onClick={() => readText(currentScenario.description)}
-                          className={`p-2 rounded-full transition-all ${isReading ? 'bg-amber-500 text-slate-900 animate-pulse' : 'bg-slate-800 text-slate-400 hover:text-amber-500'}`}
+                          className={`p-2 rounded-full transition-all ${isReading ? 'bg-amber-500 text-slate-900 animate-pulse' : 'bg-slate-800/20 text-slate-400 hover:text-amber-500 backdrop-blur-sm'}`}
                           title={t.readText}
                         >
                           {isReading ? <VolumeX size={20} /> : <Volume2 size={20} />}
@@ -366,12 +406,12 @@ const App: React.FC = () => {
                         <span className="px-3 py-1 bg-blue-500/10 text-blue-500 rounded-full text-[10px] font-black uppercase tracking-[0.2em] inline-block">{t.ui.results}</span>
                         <button 
                           onClick={() => readText(lastResult)}
-                          className={`p-2 rounded-full transition-all ${isReading ? 'bg-blue-500 text-white animate-pulse' : 'bg-slate-800 text-slate-400 hover:text-blue-500'}`}
+                          className={`p-2 rounded-full transition-all ${isReading ? 'bg-blue-500 text-white animate-pulse' : 'bg-slate-800/20 text-slate-400 hover:text-blue-500 backdrop-blur-sm'}`}
                         >
                           {isReading ? <VolumeX size={20} /> : <Volume2 size={20} />}
                         </button>
                       </div>
-                      <p className={`text-xl leading-relaxed mb-10 p-8 rounded-3xl border ${theme === 'dark' ? 'bg-slate-800/40 border-slate-700' : 'bg-slate-100 border-slate-200'} flex-grow`}>{lastResult}</p>
+                      <p className={`text-xl leading-relaxed mb-10 p-8 rounded-3xl border ${theme === 'dark' ? 'bg-slate-800/40 border-slate-700' : 'bg-slate-100/40 border-slate-200'} flex-grow`}>{lastResult}</p>
                       <button onClick={nextTurn} className="w-full bg-blue-600 hover:bg-blue-500 text-white font-black py-5 rounded-2xl transition-all shadow-xl text-lg uppercase">{t.ui.nextTurn}</button>
                     </motion.div>
                   )}
@@ -411,7 +451,7 @@ const App: React.FC = () => {
 
       <HistoryPanel history={history} isOpen={isHistoryOpen} onClose={() => setIsHistoryOpen(false)} />
 
-      <footer className={`p-8 text-center text-[10px] border-t transition-colors ${theme === 'dark' ? 'border-slate-900 bg-slate-950' : 'border-slate-200 bg-slate-100'}`}>
+      <footer className={`p-8 text-center text-[10px] border-t transition-colors ${theme === 'dark' ? 'border-slate-800 bg-slate-950/30' : 'border-slate-200 bg-slate-100/30'} backdrop-blur-md`}>
         <p className="opacity-50 font-bold mb-2 uppercase tracking-widest">(C) Noam Gold AI 2025</p>
         <p className="opacity-70">{t.feedback}: <a href="mailto:goldnoamai@gmail.com" className="text-amber-500 hover:underline">goldnoamai@gmail.com</a></p>
       </footer>
