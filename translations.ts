@@ -157,7 +157,7 @@ export const translations: Record<Language, any> = {
   ru: {
     title: "Гегемония на Ближнем Востоке",
     startTitle: "Судьба нации",
-    startDesc: "Возглавьте страну на Ближнем Востоке. Пройдите войны и кризисы.",
+    startDesc: "Возглавьте свою страну на современном Ближнем Востоке. Пройдите через войны и кризисы.",
     newGame: "Новая игра",
     loadGame: "Загрузить",
     save: "Сохранить",
@@ -190,6 +190,15 @@ export const translations: Record<Language, any> = {
           { id: "1a", label: "Военный ответ", description: "Разверните войска и пригрозите ударами.", impact: { military: 10, diplomacy: -15, territory: 0, economy: -5, narrativeResult: "Стройка остановлена, но отношения испорчены." } },
           { id: "1b", label: "Переговоры", description: "Предложите сотрудничество в энергетике.", impact: { military: -5, diplomacy: 15, territory: 0, economy: 10, narrativeResult: "Достигнуто историческое соглашение." } },
           { id: "1c", label: "Обращение в ООН", description: "Запросите санкции против соседа.", impact: { military: 0, diplomacy: 5, territory: -5, economy: -5, narrativeResult: "Процесс в ООН затянулся, фермеры страдают." } }
+        ]
+      },
+      {
+        title: "Технологическая революция",
+        description: "Гигант индустрии хочет построить хаб в пустыне.",
+        choices: [
+          { id: "2a", label: "Субсидии", description: "Налоговые льготы для привлечения капитала.", impact: { military: 0, diplomacy: 5, territory: 0, economy: 20, narrativeResult: "Экономика выросла, но долг увеличился." } },
+          { id: "2b", label: "Местные кадры", description: "Требование нанимать 80% местных.", impact: { military: 5, diplomacy: 0, territory: 0, economy: 10, narrativeResult: "Человеческий капитал вырос." } },
+          { id: "2c", label: "Свой проект", description: "Развивать технологии самостоятельно.", impact: { military: 15, diplomacy: -5, territory: 0, economy: -10, narrativeResult: "Военная независимость достигнута." } }
         ]
       }
     ]
