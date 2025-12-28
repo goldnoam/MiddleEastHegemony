@@ -17,11 +17,20 @@ export const translations: Record<Language, any> = {
     share: "שתף הישגים",
     feedback: "שלח משוב",
     readText: "הקרא טקסט",
+    achievements: "הישגים",
+    unlocked: "נפתח הישג!",
     stats: {
       military: "עוצמה צבאית",
       diplomacy: "דיפלומטיה",
       territory: "טריטוריה",
       economy: "כלכלה"
+    },
+    achievementList: {
+      mil_master: { title: "מעצמה צבאית", desc: "הגע ל-80 עוצמה צבאית" },
+      dip_master: { title: "אדריכל השלום", desc: "הגע ל-80 דיפלומטיה" },
+      eco_master: { title: "נמר כלכלי", desc: "הגע ל-80 כלכלה" },
+      survivor: { title: "שורד אזורי", desc: "הגעת לתור 10" },
+      hegemon: { title: "הגמון אמיתי", desc: "ניצחת במשחק" }
     },
     ui: {
       intelReport: "דו\"ח מודיעין",
@@ -68,7 +77,7 @@ export const translations: Record<Language, any> = {
         ]
       },
       {
-        title: "גול הגירה אזורי",
+        title: "גל הגירה אזורי",
         description: "מלחמת אזרחים במדינה סמוכה שולחת מאות אלפי פליטים לכיוון הגבולות שלך.",
         choices: [
           { id: "4a", label: "גבולות פתוחים", description: "קבל את הפליטים והענק להם סיוע הומניטרי מלא.", impact: { military: -10, diplomacy: 25, territory: 0, economy: -15, narrativeResult: "העולם מריע לך דיפלומטית, אך הנטל הכלכלי והחברתי כבד מנשוא." } },
@@ -129,6 +138,24 @@ export const translations: Record<Language, any> = {
           { id: "10b", label: "חסינות עדר", description: "השאר את המשק פתוח וסמוך על מערכת הבריאות.", impact: { military: 5, diplomacy: 0, territory: 0, economy: 10, narrativeResult: "הכלכלה שגשגה יחסית, אך המחיר בחיי אדם היה כבד." } },
           { id: "10c", label: "דיפלומטיית חיסונים", description: "פתח חיסון מקומי וחלק אותו למדינות האזור.", impact: { military: 0, diplomacy: 40, territory: 0, economy: 15, narrativeResult: "הפכת ל'מושיע האזור'. אויבים לשעבר הפכו לבעלי ברית." } }
         ]
+      },
+      {
+        title: "פסטיבל תרבות אזורי",
+        description: "יוזמה להקמת פסטיבל מוזיקה ותרבות בין-ערבי בבירתך מעוררת מחלוקת.",
+        choices: [
+          { id: "11a", label: "אירוח מלא", description: "השקע משאבים בביטחון ואירוח פאר.", impact: { military: -5, diplomacy: 25, territory: 0, economy: 10, narrativeResult: "העולם ראה צד אחר של האזור. תיירות החלה לזרום." } },
+          { id: "11b", label: "שיתוף מסחרי", description: "אפשר לחברות פרטיות לנהל את האירוע תחת חסותך.", impact: { military: 0, diplomacy: 10, territory: 0, economy: 15, narrativeResult: "הרווח הכלכלי היה נאה ללא סיכון תקציבי גבוה." } },
+          { id: "11c", label: "ביטול האירוע", description: "מנע את האירוע מחשש לערעור היציבות הדתית/חברתית.", impact: { military: 5, diplomacy: -10, territory: 0, economy: -5, narrativeResult: "השמרנים מרוצים, אך הצעירים והקהילה הבינלאומית מאוכזבים." } }
+        ]
+      },
+      {
+        title: "משבר הנפט העולמי",
+        description: "המחירים צונחים בגלל עודף היצע. ההכנסות של המדינה בסכנה.",
+        choices: [
+          { id: "12a", label: "קיצוץ בייצור", description: "לחץ על שאר המפיקות לקצץ בייצור כדי להעלות מחירים.", impact: { military: 0, diplomacy: 10, territory: 0, economy: 10, narrativeResult: "המהלך הצליח לייצב את המחירים, אך היחסים עם הלקוחות נפגעו." } },
+          { id: "12b", label: "גיוון כלכלי מהיר", description: "הזרם את שארית הרזרבות לתעשיית ההייטק.", impact: { military: -5, diplomacy: 5, territory: 0, economy: 20, narrativeResult: "הכלכלה החלה להשתחרר מהתלות בנפט. צמיחה חדשה באופק." } },
+          { id: "12c", label: "הגדלת הייצור", description: "נסה לכבוש נתח שוק גדול יותר במחירים נמוכים.", impact: { military: 5, diplomacy: -5, territory: 0, economy: -15, narrativeResult: "מלחמת מחירים פרצה. ההכנסות קרסו והמתח עם השכנות עלה." } }
+        ]
       }
     ]
   },
@@ -147,11 +174,20 @@ export const translations: Record<Language, any> = {
     share: "Share",
     feedback: "Send Feedback",
     readText: "Read Text",
+    achievements: "Achievements",
+    unlocked: "Achievement Unlocked!",
     stats: {
       military: "Military",
       diplomacy: "Diplomacy",
       territory: "Territory",
       economy: "Economy"
+    },
+    achievementList: {
+      mil_master: { title: "Military Superpower", desc: "Reach 80 Military Power" },
+      dip_master: { title: "Peace Architect", desc: "Reach 80 Diplomacy" },
+      eco_master: { title: "Economic Tiger", desc: "Reach 80 Economy" },
+      survivor: { title: "Regional Survivor", desc: "Reach Turn 10" },
+      hegemon: { title: "True Hegemon", desc: "Win the Game" }
     },
     ui: {
       intelReport: "Intel Report",
@@ -259,6 +295,24 @@ export const translations: Record<Language, any> = {
           { id: "10b", label: "Herd Immunity", description: "Keep the economy open and rely on the health system.", impact: { military: 5, diplomacy: 0, territory: 0, economy: 10, narrativeResult: "Economy thrived relatively, but the human cost was heavy." } },
           { id: "10c", label: "Vaccine Diplomacy", description: "Develop local vaccine and distribute it to neighbors.", impact: { military: 0, diplomacy: 40, territory: 0, economy: 15, narrativeResult: "Became the 'savior of the region'. Former enemies became allies." } }
         ]
+      },
+      {
+        title: "Regional Cultural Festival",
+        description: "An initiative to establish a major cross-border arts festival in your capital is sparking debate.",
+        choices: [
+          { id: "11a", label: "Full Hosting", description: "Invest heavily in security and lavish hosting.", impact: { military: -5, diplomacy: 25, territory: 0, economy: 10, narrativeResult: "The world saw a different side of the region. Tourism began to flow." } },
+          { id: "11b", label: "Commercial Partner", description: "Allow private firms to manage under your patronage.", impact: { military: 0, diplomacy: 10, territory: 0, economy: 15, narrativeResult: "Economic profit was solid with low budget risk." } },
+          { id: "11c", label: "Cancel Event", description: "Block it to avoid religious or social stability concerns.", impact: { military: 5, diplomacy: -10, territory: 0, economy: -5, narrativeResult: "Conservatives are pleased, but youth and the global community are disappointed." } }
+        ]
+      },
+      {
+        title: "Global Oil Crisis",
+        description: "Prices are plummeting due to oversupply. State revenues are at risk.",
+        choices: [
+          { id: "12a", label: "Production Cuts", description: "Pressure other producers to cut supply and raise prices.", impact: { military: 0, diplomacy: 10, territory: 0, economy: 10, narrativeResult: "Successfully stabilized prices, though client relations were strained." } },
+          { id: "12b", label: "Rapid Diversification", description: "Pour remaining reserves into the tech industry.", impact: { military: -5, diplomacy: 5, territory: 0, economy: 20, narrativeResult: "The economy began its release from oil dependency. New growth on the horizon." } },
+          { id: "12c", label: "Increase Production", description: "Try to capture more market share at lower prices.", impact: { military: 5, diplomacy: -5, territory: 0, economy: -15, narrativeResult: "Price war erupted. Revenues crashed and tensions with neighbors rose." } }
+        ]
       }
     ]
   },
@@ -277,11 +331,20 @@ export const translations: Record<Language, any> = {
     share: "Поделиться",
     feedback: "Обратная связь",
     readText: "Прочитать",
+    achievements: "Достижения",
+    unlocked: "Достижение открыто!",
     stats: {
       military: "Армия",
       diplomacy: "Дипломатия",
       territory: "Территория",
       economy: "Экономика"
+    },
+    achievementList: {
+      mil_master: { title: "Военная сверхдержава", desc: "Достигните 80 военной мощи" },
+      dip_master: { title: "Архитектор мира", desc: "Достигните 80 дипломатии" },
+      eco_master: { title: "Экономический тигр", desc: "Достигните 80 экономики" },
+      survivor: { title: "Выживший", desc: "Достигните 10 хода" },
+      hegemon: { title: "Настоящий гегемон", desc: "Выиграйте игру" }
     },
     ui: {
       intelReport: "Разведка",
@@ -316,11 +379,20 @@ export const translations: Record<Language, any> = {
     share: "分享",
     feedback: "发送反馈",
     readText: "阅读文字",
+    achievements: "成就",
+    unlocked: "成就达成！",
     stats: {
       military: "军事",
       diplomacy: "外交",
       territory: "领土",
       economy: "经济"
+    },
+    achievementList: {
+      mil_master: { title: "军事强权", desc: "军事力量达到80" },
+      dip_master: { title: "和平架构师", desc: "外交点数达到80" },
+      eco_master: { title: "经济之虎", desc: "经济实力达到80" },
+      survivor: { title: "区域生存者", desc: "到达第10回合" },
+      hegemon: { title: "真正的霸权", desc: "赢得游戏" }
     },
     ui: {
       intelReport: "情报",
@@ -355,11 +427,20 @@ export const translations: Record<Language, any> = {
     share: "साझा करें",
     feedback: "फीडबैक भेजें",
     readText: "पाठ पढ़ें",
+    achievements: "उपलब्धियां",
+    unlocked: "उपलब्धि हासिल!",
     stats: {
       military: "सैन्य",
       diplomacy: "कूटनीति",
       territory: "क्षेत्र",
       economy: "अर्थव्यवस्था"
+    },
+    achievementList: {
+      mil_master: { title: "सैन्य महाशक्ति", desc: "80 सैन्य शक्ति तक पहुँचें" },
+      dip_master: { title: "शांति वास्तुकार", desc: "80 कूटनीति तक पहुँचें" },
+      eco_master: { title: "आर्थिक टाइगर", desc: "80 अर्थव्यवस्था तक पहुँचें" },
+      survivor: { title: "क्षेत्रीय उत्तरजीवी", desc: "10वीं बारी तक पहुँचें" },
+      hegemon: { title: "सच्चा आधिपत्य", desc: "खेल जीतें" }
     },
     ui: {
       intelReport: "रिपोर्ट",
@@ -375,7 +456,7 @@ export const translations: Record<Language, any> = {
       outcomeAll: "सभी",
       outcomePeace: "शांति",
       outcomeWar: "युद्ध",
-      readStart: "विवरण पढ़ें"
+      readStart: "विवרון पढ़ें"
     },
     scenarios: []
   },
@@ -394,11 +475,20 @@ export const translations: Record<Language, any> = {
     share: "Teilen",
     feedback: "Feedback",
     readText: "Text vorlesen",
+    achievements: "Erfolge",
+    unlocked: "Erfolg freigeschaltet!",
     stats: {
       military: "Militär",
       diplomacy: "Diplomatie",
       territory: "Territorium",
       economy: "Wirtschaft"
+    },
+    achievementList: {
+      mil_master: { title: "Militärische Supermacht", desc: "Militärstärke 80 erreichen" },
+      dip_master: { title: "Friedensarchitekt", desc: "Diplomatie 80 erreichen" },
+      eco_master: { title: "Wirtschaftstiger", desc: "Wirtschaft 80 erreichen" },
+      survivor: { title: "Regionaler Überlebender", desc: "Runde 10 erreichen" },
+      hegemon: { title: "Wahrer Hegemon", desc: "Das Spiel gewinnen" }
     },
     ui: {
       intelReport: "Intel",
@@ -433,11 +523,20 @@ export const translations: Record<Language, any> = {
     share: "Compartir",
     feedback: "Feedback",
     readText: "Leer texto",
+    achievements: "Logros",
+    unlocked: "¡Logro desbloqueado!",
     stats: {
       military: "Militar",
       diplomacy: "Diplomacia",
       territory: "Territorio",
       economy: "Economía"
+    },
+    achievementList: {
+      mil_master: { title: "Superpotencia militar", desc: "Alcanza 80 de poder militar" },
+      dip_master: { title: "Arquitecto de paz", desc: "Alcanza 80 de diplomacia" },
+      eco_master: { title: "Tigre económico", desc: "Alcanza 80 de economía" },
+      survivor: { title: "Superviviente regional", desc: "Alcanza el turno 10" },
+      hegemon: { title: "Verdadero Hegemón", desc: "Gana el juego" }
     },
     ui: {
       intelReport: "Intel",

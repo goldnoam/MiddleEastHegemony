@@ -39,6 +39,14 @@ export interface HistoryEntry {
   resultText: string;
 }
 
+export interface Achievement {
+  id: string;
+  title: string;
+  description: string;
+  icon: string;
+  unlockedAt?: number;
+}
+
 export enum GameState {
   START = 'START',
   PLAYING = 'PLAYING',

@@ -1,10 +1,11 @@
 
-import React, { useState, useEffect, useCallback, useRef, useMemo } from 'react';
-import { GameStats, Scenario, Choice, GameState, HistoryEntry, Language, Theme } from './types';
+import React, { useState, useEffect, useCallback, useMemo } from 'react';
+import { GameStats, Scenario, Choice, GameState, HistoryEntry, Language, Theme, Achievement } from './types';
 import { translations } from './translations';
 import StatCard from './components/StatCard';
 import DecisionPanel from './components/DecisionPanel';
 import HistoryPanel from './components/HistoryPanel';
+import AchievementToast from './components/AchievementToast';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Volume2, VolumeX, Shield, Globe, Users, TrendingUp } from 'lucide-react';
 
@@ -18,7 +19,8 @@ const INITIAL_STATS: GameStats = {
 
 const VICTORY_TURN = 20;
 const VICTORY_THRESHOLD = 60;
-const SAVE_KEY = 'me_hegemony_save_v1';
+const SAVE_KEY = 'me_hegemony_save_v2';
+const ACHIEVEMENT_KEY = 'me_hegemony_achievements_v1';
 
 const langMap: Record<Language, string> = {
   he: 'he-IL',
@@ -120,6 +122,10 @@ const App: React.FC = () => {
   const [isGlitching, setIsGlitching] = useState(false);
   const [isReading, setIsReading] = useState(false);
 
+  // Achievement state
+  const [unlockedAchievements, setUnlockedAchievements] = useState<Achievement[]>([]);
+  const [activeToast, setActiveToast] = useState<{title: string, desc: string} | null>(null);
+
   const t = translations[language];
   const isRtl = language === 'he';
 
@@ -135,6 +141,15 @@ const App: React.FC = () => {
     const saved = localStorage.getItem(SAVE_KEY);
     if (saved) setHasSavedGame(true);
     
+    const savedAchievements = localStorage.getItem(ACHIEVEMENT_KEY);
+    if (savedAchievements) {
+      try {
+        setUnlockedAchievements(JSON.parse(savedAchievements));
+      } catch (e) {
+        console.error("Failed to load achievements", e);
+      }
+    }
+
     const savedTheme = localStorage.getItem('app_theme') as Theme;
     if (savedTheme) setTheme(savedTheme);
 
@@ -160,18 +175,14 @@ const App: React.FC = () => {
       setIsReading(false);
       return;
     }
-
     window.speechSynthesis.cancel();
     const utterance = new SpeechSynthesisUtterance(text);
     utterance.lang = langMap[language] || 'en-US';
-    
     const voices = window.speechSynthesis.getVoices();
     const voice = voices.find(v => v.lang.startsWith(language));
     if (voice) utterance.voice = voice;
-
     utterance.onend = () => setIsReading(false);
     utterance.onerror = () => setIsReading(false);
-
     setIsReading(true);
     window.speechSynthesis.speak(utterance);
   };
@@ -179,6 +190,7 @@ const App: React.FC = () => {
   const saveGame = () => {
     const gameData = { stats, gameState, currentScenario, shownScenarioTitles, lastResult, history, language };
     localStorage.setItem(SAVE_KEY, JSON.stringify(gameData));
+    localStorage.setItem(ACHIEVEMENT_KEY, JSON.stringify(unlockedAchievements));
     setHasSavedGame(true);
     setSaveStatus(t.ui.saving);
     setTimeout(() => setSaveStatus(null), 3000);
@@ -204,6 +216,25 @@ const App: React.FC = () => {
     }
   };
 
+  const unlockAchievement = useCallback((id: string) => {
+    if (unlockedAchievements.some(a => a.id === id)) return;
+    const info = t.achievementList[id];
+    if (!info) return;
+    
+    const newAchievement: Achievement = { id, ...info, unlockedAt: stats.turn };
+    const newList = [...unlockedAchievements, newAchievement];
+    setUnlockedAchievements(newList);
+    localStorage.setItem(ACHIEVEMENT_KEY, JSON.stringify(newList));
+    setActiveToast({ title: info.title, desc: info.desc });
+  }, [unlockedAchievements, t.achievementList, stats.turn]);
+
+  const checkAchievements = useCallback((currentStats: GameStats) => {
+    if (currentStats.military >= 80) unlockAchievement('mil_master');
+    if (currentStats.diplomacy >= 80) unlockAchievement('dip_master');
+    if (currentStats.economy >= 80) unlockAchievement('eco_master');
+    if (currentStats.turn >= 10) unlockAchievement('survivor');
+  }, [unlockAchievement]);
+
   const pickScenario = useCallback(() => {
     setLoading(true);
     setLoadingText(loadingMessages[Math.floor(Math.random() * loadingMessages.length)]);
@@ -215,20 +246,20 @@ const App: React.FC = () => {
       if (available.length > 0) {
         let unshown = available.filter((s: Scenario) => !shownScenarioTitles.includes(s.title));
         
+        // If all scenarios have been exhausted, reset the tracking for this session
         if (unshown.length === 0) {
           unshown = available;
           const randomIndex = Math.floor(Math.random() * unshown.length);
           const picked = unshown[randomIndex];
           setCurrentScenario(picked);
           setShownScenarioTitles([picked.title]);
-          setGameState(GameState.PLAYING);
         } else {
           const randomIndex = Math.floor(Math.random() * unshown.length);
           const picked = unshown[randomIndex];
           setCurrentScenario(picked);
           setShownScenarioTitles(prev => [...prev, picked.title]);
-          setGameState(GameState.PLAYING);
         }
+        setGameState(GameState.PLAYING);
       } else {
         setError(t.ui.error);
       }
@@ -253,7 +284,7 @@ const App: React.FC = () => {
 
     setTimeout(() => {
       setIsGlitching(false);
-      const newStats = {
+      const newStats: GameStats = {
         military: Math.min(100, Math.max(0, stats.military + choice.impact.military)),
         diplomacy: Math.min(100, Math.max(0, stats.diplomacy + choice.impact.diplomacy)),
         territory: Math.min(100, Math.max(0, stats.territory + choice.impact.territory)),
@@ -271,11 +302,13 @@ const App: React.FC = () => {
 
       setStats(newStats);
       setLastResult(choice.impact.narrativeResult);
+      checkAchievements(newStats);
       
       if (newStats.military <= 0 || newStats.diplomacy <= 0 || newStats.economy <= 0) {
         setGameState(GameState.GAME_OVER);
       } else if (newStats.turn >= VICTORY_TURN && newStats.military >= VICTORY_THRESHOLD && newStats.diplomacy >= VICTORY_THRESHOLD && newStats.economy >= VICTORY_THRESHOLD) {
         setGameState(GameState.VICTORY);
+        unlockAchievement('hegemon');
       } else {
         setGameState(GameState.RESULT);
       }
@@ -287,7 +320,8 @@ const App: React.FC = () => {
   };
 
   const handleShare = async () => {
-    const text = `${t.title} - Turn ${stats.turn}/${VICTORY_TURN}\nMil: ${stats.military}, Dipl: ${stats.diplomacy}, Econ: ${stats.economy}`;
+    const achievementCount = unlockedAchievements.length;
+    const text = `${t.title} - Turn ${stats.turn}/${VICTORY_TURN}\nMil: ${stats.military}, Dipl: ${stats.diplomacy}, Econ: ${stats.economy}\nAchievements: ${achievementCount}`;
     if (navigator.share) {
       await navigator.share({ title: t.title, text, url: window.location.href });
     } else {
@@ -403,16 +437,6 @@ const App: React.FC = () => {
                         <p className="text-amber-500 font-black tracking-[0.2em] uppercase text-xs animate-pulse">
                           {loadingText}
                         </p>
-                        <div className="flex gap-1 justify-center">
-                          {[1, 2, 3].map(i => (
-                            <motion.div 
-                              key={i}
-                              animate={{ opacity: [0.2, 1, 0.2] }}
-                              transition={{ duration: 1, repeat: Infinity, delay: i * 0.2 }}
-                              className="w-1.5 h-1.5 bg-amber-500 rounded-full"
-                            />
-                          ))}
-                        </div>
                       </div>
                     </motion.div>
                   )}
@@ -435,10 +459,8 @@ const App: React.FC = () => {
                             readText(`${currentScenario.title}. ${currentScenario.description}. ${choicesText}`);
                           }}
                           className={`p-2.5 rounded-xl transition-all flex items-center gap-2 ${isReading ? 'bg-amber-500 text-slate-900 shadow-lg shadow-amber-500/20' : 'bg-slate-800/40 text-slate-400 hover:text-amber-500 backdrop-blur-sm border border-slate-700/50'}`}
-                          title={t.readText}
                         >
                           {isReading ? <VolumeX size={18} /> : <Volume2 size={18} />}
-                          <span className="text-[10px] font-bold uppercase tracking-wider">{isReading ? (isRtl ? 'מפסיק...' : 'Stop') : (isRtl ? 'הקרא אינטל' : 'Read Intel')}</span>
                         </button>
                       </div>
                       <h2 className="text-3xl md:text-4xl font-black mb-6 leading-tight">{currentScenario.title}</h2>
@@ -457,12 +479,8 @@ const App: React.FC = () => {
                     >
                       <div className="flex justify-between items-start mb-4">
                         <span className="px-3 py-1 bg-blue-500/10 text-blue-500 rounded-full text-[10px] font-black uppercase tracking-[0.2em] inline-block">{t.ui.results}</span>
-                        <button 
-                          onClick={() => readText(lastResult)}
-                          className={`p-2.5 rounded-xl transition-all flex items-center gap-2 ${isReading ? 'bg-blue-500 text-white shadow-lg shadow-blue-500/20' : 'bg-slate-800/40 text-slate-400 hover:text-blue-500 backdrop-blur-sm border border-slate-700/50'}`}
-                        >
+                        <button onClick={() => readText(lastResult)} className={`p-2.5 rounded-xl transition-all flex items-center gap-2 ${isReading ? 'bg-blue-500 text-white shadow-lg shadow-blue-500/20' : 'bg-slate-800/40 text-slate-400'}`}>
                           {isReading ? <VolumeX size={18} /> : <Volume2 size={18} />}
-                          <span className="text-[10px] font-bold uppercase tracking-wider">{isReading ? (isRtl ? 'מפסיק...' : 'Stop') : (isRtl ? 'הקרא סיכום' : 'Read Result')}</span>
                         </button>
                       </div>
                       <p className={`text-xl leading-relaxed mb-10 p-8 rounded-3xl border ${theme === 'dark' ? 'bg-slate-800/40 border-slate-700' : 'bg-slate-100/40 border-slate-200'} flex-grow shadow-inner`}>{lastResult}</p>
@@ -505,12 +523,23 @@ const App: React.FC = () => {
 
       <HistoryPanel 
         history={history} 
+        achievements={unlockedAchievements}
         isOpen={isHistoryOpen} 
         onClose={() => setIsHistoryOpen(false)} 
         onRead={readText}
         isReading={isReading}
         language={language}
       />
+
+      <AnimatePresence>
+        {activeToast && (
+          <AchievementToast 
+            title={activeToast.title}
+            description={activeToast.desc}
+            onClose={() => setActiveToast(null)}
+          />
+        )}
+      </AnimatePresence>
 
       <footer className={`p-8 text-center text-[10px] border-t transition-colors ${theme === 'dark' ? 'border-slate-800 bg-slate-950/30' : 'border-slate-200 bg-slate-100/30'} backdrop-blur-md`}>
         <p className="opacity-50 font-bold mb-2 uppercase tracking-widest">(C) Noam Gold AI 2025</p>
